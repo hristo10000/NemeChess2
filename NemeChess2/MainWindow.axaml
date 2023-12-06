@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:nc="using:NemeChess2"
+        mc:Ignorable="d"
+        x:Class="NemeChess2.MainWindow"
+        x:DataType="nc:MainWindow"
+        Title="Chess App" Width="720" Height="720">
+	<Window.Resources>
+		<nc:ImagePathConverter x:Key="ImagePathConverter"/>
+	</Window.Resources>
+	<Grid>
+		<ItemsControl ItemsSource="{Binding Chessboard}">
+			<ItemsControl.ItemsPanel>
+				<ItemsPanelTemplate>
+					<UniformGrid Rows="8" Columns="8"/>
+				</ItemsPanelTemplate>
+			</ItemsControl.ItemsPanel>
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<Border Background="{Binding Background}" Width="90" Height="90" BorderBrush="Black" BorderThickness="1" PointerPressed="Square_OnPointerPressed">
+						<Image Source="{Binding PieceImageSource, Converter={StaticResource ImagePathConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="Uniform"/>
+					</Border>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+	</Grid>
+</Window>
