@@ -62,6 +62,7 @@ namespace NemeChess2
                 }
             }
         }
+
         public string? Piece
         {
             get { return _piece; }
@@ -90,18 +91,18 @@ namespace NemeChess2
             }
         }
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        private void UpdatePieceImageSource()
+        public void UpdatePieceImageSource()
         {
             if (!string.IsNullOrEmpty(Piece))
             {
-                string absolutePath = @"C:\Users\Hristo Ivanov\Documents\GitHub\NemeChess2\NemeChess2\bin\Debug\net6.0-windows\pieces-basic\";
-
+                string absolutePath = @"C:\Users\Hristo Ivanov\Documents\GitHub\NemeChess2\NemeChess2\bin\Debug\net6.0-windows\pieces-basic\";//TODO: switch back to dynamic
                 PieceImageSource = Path.Combine(absolutePath, $"{Piece}.png");
             }
+            OnPropertyChanged(nameof(PieceImageSource));
         }
     }
     public partial class MainWindow : Window
@@ -111,7 +112,7 @@ namespace NemeChess2
         private static string? GameId;
         private List<ChessSquare> _chessboard = new List<ChessSquare>();
         private GameStreamingService _gameStreamingService;
-        public bool isWhite { get; set; }
+        public bool isWhite { get; set; } 
         public List<ChessSquare> Chessboard
         {
             get { return _chessboard; }
@@ -136,11 +137,8 @@ namespace NemeChess2
         public MainWindow()
         {
             InitializeComponent();
-
             _lichessApiService = new LichessApiService("lip_JYrY3vNv29oHJWFb4XLN");
-
             Chessboard = GenerateChessboard();
-
             Task.Run(async () =>
             {
                 try
@@ -153,9 +151,8 @@ namespace NemeChess2
                         Debug.WriteLine($"Bot game created! Game ID: {GameId}");
 
                         _gameStreamingService = new GameStreamingService("lip_JYrY3vNv29oHJWFb4XLN", GameId, HandleGameUpdate);
-                        await _gameStreamingService.StartStreamingAsync();
-
                         isWhite = DetermineIsWhite(lichessGame);
+                        await _gameStreamingService.StartStreamingAsync(isWhite);
                     }
                     else
                     {
@@ -167,7 +164,6 @@ namespace NemeChess2
                     Debug.WriteLine($"An error occurred: {ex.Message}");
                 }
             });
-
             DataContext = this;
         }
         private void HandleGameUpdate(GameUpdate gameUpdate)
@@ -188,25 +184,42 @@ namespace NemeChess2
                 Console.WriteLine("GameUpdate or State is null in game update.");
             }
         }
-
-
         private void UpdateChessboard(string moves)
         {
-            Chessboard.Clear();
-            Chessboard.AddRange(GenerateChessboard());
+            if (Chessboard == null)
+            {
+                Console.WriteLine("Chessboard is null");
+                return;
+            }
 
             var moveList = moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var move in moveList)
             {
-                var fromSquare = move.Substring(0, 2);
-                var toSquare = move.Substring(2, 2);
-                MovePiece(int.Parse(fromSquare[1].ToString()) - 1, fromSquare[0] - 'a',
-                          int.Parse(toSquare[1].ToString()) - 1, toSquare[0] - 'a');
+                if (move.Length == 4)
+                {
+                    var fromSquare = Chessboard.FirstOrDefault(square => square.Row == (move[1] - '1') && square.Column == (move[0] - 'a'));
+                    var toSquare = Chessboard.FirstOrDefault(square => square.Row == (move[3] - '1') && square.Column == (move[2] - 'a'));
+
+                    if (fromSquare != null && toSquare != null)
+                    {
+                        MovePiece(fromSquare.Row, fromSquare.Column, toSquare.Row, toSquare.Column);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid move format: {move}");
+                }
             }
         }
         private void MovePiece(int fromRow, int fromCol, int toRow, int toCol)
         {
+            if (Chessboard == null)
+            {
+                Console.WriteLine("Chessboard is null");
+                return;
+            }
+
             var fromSquare = Chessboard.FirstOrDefault(square => square.Row == fromRow && square.Column == fromCol);
             var toSquare = Chessboard.FirstOrDefault(square => square.Row == toRow && square.Column == toCol);
 
@@ -214,16 +227,26 @@ namespace NemeChess2
             {
                 toSquare.Piece = fromSquare.Piece;
                 fromSquare.Piece = "";
+
+                //bad
+                toSquare.UpdatePieceImageSource();
+                fromSquare.UpdatePieceImageSource();
+
+                //???
+                OnPropertyChanged(nameof(fromSquare));
+                OnPropertyChanged(nameof(toSquare));
             }
         }
+
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
         }
-        private void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
+        private async void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
             var border = (Border)sender;
             var square = (ChessSquare)border.DataContext;
+
             if (_selectedSquare == null)
             {
                 _selectedSquare = square;
@@ -233,13 +256,16 @@ namespace NemeChess2
             }
             else
             {
-                var move = $"{Convert.ToChar('a' + _selectedSquare.Column)}{_selectedSquare.Row + 1}{Convert.ToChar('a' + square.Column)}{square.Row + 1}";
-                Debug.WriteLine(move);
-                MakeMoveAsync(move);
-                _selectedSquare.IsSelected = false;
-                _selectedSquare = null;
-                border.BorderBrush = Brushes.Black;
-                border.BorderThickness = new Thickness(1);
+                if (_selectedSquare != null)
+                {
+                    var move = $"{Convert.ToChar('a' + _selectedSquare.Column)}{_selectedSquare.Row + 1}{Convert.ToChar('a' + square.Column)}{square.Row + 1}";
+                    Debug.WriteLine(move);
+                    await MakeMoveAsync(move);
+                    _selectedSquare.IsSelected = false;
+                    _selectedSquare = null;
+                    border.BorderBrush = Brushes.Black;
+                    border.BorderThickness = new Thickness(1);
+                }
             }
         }
         private async Task MakeMoveAsync(string move)
@@ -354,6 +380,5 @@ namespace NemeChess2
             }
             return "";
         }
-
     }
 }

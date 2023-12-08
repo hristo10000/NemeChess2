@@ -7,16 +7,19 @@
         x:Class="NemeChess2.MainWindow"
         x:DataType="nc:MainWindow"
         Title="Chess App" Width="720" Height="720">
+
 	<Window.Resources>
 		<nc:ImagePathConverter x:Key="ImagePathConverter"/>
 	</Window.Resources>
+
 	<Grid>
-		<ItemsControl ItemsSource="{Binding Chessboard}">
+		<ItemsControl ItemsSource="{Binding Chessboard}" Name="ChessboardGrid">
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
 					<UniformGrid Rows="8" Columns="8"/>
 				</ItemsPanelTemplate>
 			</ItemsControl.ItemsPanel>
+
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
 					<Border Background="{Binding Background}" Width="90" Height="90" BorderBrush="Black" BorderThickness="1" PointerPressed="Square_OnPointerPressed">

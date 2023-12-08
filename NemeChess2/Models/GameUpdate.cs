@@ -1,17 +1,20 @@
-﻿namespace NemeChess2.Models
+﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+
+namespace NemeChess2.Models
 {
     public class GameUpdate
     {
-        public string Type { get; set; }
         public string Id { get; set; }
         public Variant Variant { get; set; }
-        public Clock Clock { get; set; }
         public string Speed { get; set; }
         public Perf Perf { get; set; }
+        [JsonProperty("rated")]
+        public bool Rated { get; set; }
         public long CreatedAt { get; set; }
-        public GameEventPlayer White { get; set; }
-        public GameEventPlayer Black { get; set; }
         public string InitialFen { get; set; }
+        public Clock Clock { get; set; }
+        public string Type { get; set; }
         public GameStateEvent State { get; set; }
     }
 
@@ -31,9 +34,9 @@
     {
         public string Id { get; set; }
         public string Name { get; set; }
+        public string? Title { get; set; }
+        public long Rating { get; set; }
         public bool Provisional { get; set; }
-        public int Rating { get; set; }
-        public string Title { get; set; }
     }
 
     public class GameStateEvent
@@ -45,5 +48,22 @@
         public int Winc { get; set; }
         public int Binc { get; set; }
         public string Status { get; set; }
+    }
+
+    public class GameUpdateWhite : GameUpdate
+    {
+        public GameEventPlayer White { get; set; }
+        public AiLevelType Black { get; set; }
+
+    }
+    public class GameUpdateBlack : GameUpdate
+    {
+        public GameEventPlayer Black { get; set; }
+        public AiLevelType White { get; set; }
+
+    }
+    public class AiLevelType
+    {
+        public int AiLevel { get; set; }
     }
 }

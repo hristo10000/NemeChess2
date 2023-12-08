@@ -1,4 +1,5 @@
 ﻿using NemeChess2.Models;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -24,27 +25,30 @@ namespace NemeChess2
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiToken}");
         }
-        public async Task StartStreamingAsync(CancellationToken cancellationToken = default)
+        public async Task StartStreamingAsync(bool isWhite, CancellationToken cancellationToken = default)
         {
             try
             {
                 using var response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
                 using var reader = new StreamReader(response);
 
-                while (!reader.EndOfStream)
+                while (!reader.EndOfStream )
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var line = await reader.ReadLineAsync();
 
-                    Debug.WriteLine($"Received JSON data: {line}");
-
+                    if (line == String.Empty)
+                    {
+                        Task.Delay(1000).Wait();
+                        continue;
+                    }
                     try
                     {
-                        var gameUpdate = JsonSerializer.Deserialize<GameUpdate>(line);
+                        GameUpdate gameUpdate = isWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);
                         _handleGameUpdate?.Invoke(gameUpdate);
                     }
-                    catch (JsonException ex)
+                    catch (Exception ex)
                     {
                         Debug.WriteLine($"JsonException: {ex.Message}");
                     }
