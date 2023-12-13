@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Input;
@@ -11,7 +10,6 @@ using System.Diagnostics;
 using System.IO;
 using Avalonia.Data.Converters;
 using NemeChess2.Models;
-using Avalonia.Threading;
 using System.Linq;
 using DynamicData;
 
@@ -99,9 +97,9 @@ namespace NemeChess2
         public void UpdatePieceImageSource()
         {
             if (!string.IsNullOrEmpty(Piece))
-            {
-                string absolutePath = @"C:\Users\Hristo Ivanov\Documents\GitHub\NemeChess2\NemeChess2\bin\Debug\net6.0-windows\pieces-basic\";//TODO: switch back to dynamic
-                PieceImageSource = Path.Combine(absolutePath, $"{Piece}.png");
+            { 
+                PieceImageSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pieces-basic", $"{Piece}.png");
+                Debug.WriteLine(PieceImageSource);
             }
             OnPropertyChanged(nameof(PieceImageSource));
         }
@@ -171,7 +169,7 @@ namespace NemeChess2
             {
                 if (gameUpdate.State.Moves != null)
                 {
-                    Dispatcher.UIThread.InvokeAsync(() => UpdateChessboard(gameUpdate.State.Moves));//TODO: test if it will work without dispatcher
+                    UpdateChessboard(gameUpdate.State.Moves);
                 }
                 else
                 {
@@ -183,6 +181,7 @@ namespace NemeChess2
                 Console.WriteLine("GameUpdate or State is null in game update.");
             }
         }
+
         public void UpdateChessboard(string moves)
         {
             if (Chessboard == null)
@@ -255,7 +254,7 @@ namespace NemeChess2
         {
             try
             {
-                await _lichessApiService.MakeMoveAsync(GameId, move);
+                await _lichessApiService.MakeMoveAsync(GameId, move); 
                 Console.WriteLine($"Move {move} played successfully.");
             }
             catch (Exception ex)
@@ -362,6 +361,5 @@ namespace NemeChess2
 
             return "";
         }
-
     }
 }

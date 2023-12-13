@@ -74,7 +74,7 @@ namespace NemeChess2
             using var _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
             using var reader = new StreamReader(_response);
             var line = await reader.ReadLineAsync();
-            UpdateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(string.Empty);
+            UpdateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
             return UpdateWhite?.White?.Id == "ico_i";
         }
         public void Dispose()
