@@ -13,6 +13,7 @@ using Avalonia.Data.Converters;
 using NemeChess2.Models;
 using Avalonia.Threading;
 using System.Linq;
+using DynamicData;
 
 namespace NemeChess2
 {
@@ -112,7 +113,8 @@ namespace NemeChess2
         private static string? GameId;
         private List<ChessSquare> _chessboard = new List<ChessSquare>();
         private GameStreamingService _gameStreamingService;
-        public bool isWhite { get; set; } 
+        public bool IsWhite { get; set; }
+        public LichessGame CurrentGame;
         public List<ChessSquare> Chessboard
         {
             get { return _chessboard; }
@@ -130,15 +132,11 @@ namespace NemeChess2
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        private bool DetermineIsWhite(LichessGame lichessGame)
-        {
-            return lichessGame?.Player?.ToLower() == "white";
-        }
         public MainWindow()
         {
             InitializeComponent();
             _lichessApiService = new LichessApiService("lip_JYrY3vNv29oHJWFb4XLN");
-            Chessboard = GenerateChessboard();
+            Chessboard = new List<ChessSquare>();
             Task.Run(async () =>
             {
                 try
@@ -151,8 +149,9 @@ namespace NemeChess2
                         Debug.WriteLine($"Bot game created! Game ID: {GameId}");
 
                         _gameStreamingService = new GameStreamingService("lip_JYrY3vNv29oHJWFb4XLN", GameId, HandleGameUpdate);
-                        isWhite = DetermineIsWhite(lichessGame);
-                        await _gameStreamingService.StartStreamingAsync(isWhite);
+                        IsWhite = await _gameStreamingService.GetInitialResponse();
+                        Debug.WriteLine(IsWhite ? "You're White!" : "You're Black");
+                        Chessboard = GenerateChessboard(IsWhite);
                     }
                     else
                     {
@@ -172,7 +171,7 @@ namespace NemeChess2
             {
                 if (gameUpdate.State.Moves != null)
                 {
-                    Dispatcher.UIThread.InvokeAsync(() => UpdateChessboard(gameUpdate.State.Moves));
+                    Dispatcher.UIThread.InvokeAsync(() => UpdateChessboard(gameUpdate.State.Moves));//TODO: test if it will work without dispatcher
                 }
                 else
                 {
@@ -184,23 +183,20 @@ namespace NemeChess2
                 Console.WriteLine("GameUpdate or State is null in game update.");
             }
         }
-        private void UpdateChessboard(string moves)
+        public void UpdateChessboard(string moves)
         {
             if (Chessboard == null)
             {
-                Console.WriteLine("Chessboard is null");
+                Debug.WriteLine("Chessboard is null");
                 return;
             }
-
             var moveList = moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
             foreach (var move in moveList)
             {
                 if (move.Length == 4)
                 {
                     var fromSquare = Chessboard.FirstOrDefault(square => square.Row == (move[1] - '1') && square.Column == (move[0] - 'a'));
                     var toSquare = Chessboard.FirstOrDefault(square => square.Row == (move[3] - '1') && square.Column == (move[2] - 'a'));
-
                     if (fromSquare != null && toSquare != null)
                     {
                         MovePiece(fromSquare.Row, fromSquare.Column, toSquare.Row, toSquare.Column);
@@ -214,15 +210,8 @@ namespace NemeChess2
         }
         private void MovePiece(int fromRow, int fromCol, int toRow, int toCol)
         {
-            if (Chessboard == null)
-            {
-                Console.WriteLine("Chessboard is null");
-                return;
-            }
-
             var fromSquare = Chessboard.FirstOrDefault(square => square.Row == fromRow && square.Column == fromCol);
             var toSquare = Chessboard.FirstOrDefault(square => square.Row == toRow && square.Column == toCol);
-
             if (fromSquare != null && toSquare != null)
             {
                 toSquare.Piece = fromSquare.Piece;
@@ -237,7 +226,6 @@ namespace NemeChess2
                 OnPropertyChanged(nameof(toSquare));
             }
         }
-
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
@@ -246,13 +234,10 @@ namespace NemeChess2
         {
             var border = (Border)sender;
             var square = (ChessSquare)border.DataContext;
-
             if (_selectedSquare == null)
             {
                 _selectedSquare = square;
                 square.IsSelected = true;
-                border.BorderBrush = Brushes.Red;
-                border.BorderThickness = new Thickness(2);
             }
             else
             {
@@ -263,8 +248,6 @@ namespace NemeChess2
                     await MakeMoveAsync(move);
                     _selectedSquare.IsSelected = false;
                     _selectedSquare = null;
-                    border.BorderBrush = Brushes.Black;
-                    border.BorderThickness = new Thickness(1);
                 }
             }
         }
@@ -280,105 +263,105 @@ namespace NemeChess2
                 Console.WriteLine($"Error making move: {ex.Message}");
             }
         }
-        /*private static List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
+        public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
         {
-            var chessboard = new List<ChessSquare>();
-
             for (int row = 0; row < 8; row++)
             {
+                List<ChessSquare> rowSquares = new List<ChessSquare>();
+
                 for (int col = 0; col < 8; col++)
                 {
-                    var square = new ChessSquare
+                    ChessSquare square = new ()
                     {
                         Background = (row + col) % 2 == 0 ? Brushes.White : Brushes.LightGray,
                         Piece = GetInitialPiece(row, col, isWhitePlayer),
-                        Row = isWhitePlayer ? row : 7 - row,
-                        Column = isWhitePlayer ? col : 7 - col
-                    };
-                    chessboard.Add(square);
-                }
-            }
-
-            return chessboard;
-        }*/
-        private List<ChessSquare> GenerateChessboard()// separate method for putting pieces
-        {
-            var chessboard = new List<ChessSquare>();
-
-            for (int row = 0; row < 8; row++)
-            {
-                for (int col = 0; col < 8; col++)
-                {
-                    var square = new ChessSquare
-                    {
-                        Background = (row + col) % 2 == 0 ? Brushes.White : Brushes.LightGray,
-                        Piece = GetInitialPiece(row, col),
                         Row = row,
                         Column = col
                     };
-                    chessboard.Add(square);
+                    rowSquares.Add(square);
                 }
+                Chessboard.Add(rowSquares);
             }
-            return chessboard;
+            return Chessboard;
         }
-        /* private static string GetInitialPiece(int row, int col, bool isWhite)
-         {
-             string color = isWhite ? "white" : "black";
-
-             if (row == 1 || row == 6)
-             {
-                 return $"{color}-pawn";
-             }
-             if (row == 0 || row == 7)
-             {
-                 switch (col)
-                 {
-                     case 0:
-                     case 7:
-                         return $"{color}-rook";
-                     case 1:
-                     case 6:
-                         return $"{color}-knight";
-                     case 2:
-                     case 5:
-                         return $"{color}-bishop";
-                     case 3:
-                         return $"{color}-queen";
-                     case 4:
-                         return $"{color}-king";
-                 }
-             }
-             return "";
-         }
- */
-        private static string GetInitialPiece(int row, int col)
+        public static string GetInitialPiece(int row, int col, bool isWhite)
         {
-            string color = (row == 0 || row == 1) ? "black" : "white";
-
-            if (row == 1 || row == 6)
+            if (row < 0 || row > 7 || col < 0 || col > 7)
             {
-                return $"{color}-pawn";
+                return "Invalid position";
             }
-            if (row == 0 || row == 7)
+
+            if (isWhite)
             {
-                switch (col)
+                switch (row)
                 {
                     case 0:
+                        switch (col)
+                        {
+                            case 0: return "black-rook";
+                            case 1: return "black-knight";
+                            case 2: return "black-bishop";
+                            case 3: return "black-queen";
+                            case 4: return "black-king";
+                            case 5: return "black-bishop";
+                            case 6: return "black-knight";
+                            case 7: return "black-rook";
+                        }
+                        break;
+                    case 1: return "black-pawn";
+                    case 6: return "white-pawn";
                     case 7:
-                        return $"{color}-rook";
-                    case 1:
-                    case 6:
-                        return $"{color}-knight";
-                    case 2:
-                    case 5:
-                        return $"{color}-bishop";
-                    case 3:
-                        return $"{color}-queen";
-                    case 4:
-                        return $"{color}-king";
+                        switch (col)
+                        {
+                            case 0: return "white-rook";
+                            case 1: return "white-knight";
+                            case 2: return "white-bishop";
+                            case 3: return "white-queen";
+                            case 4: return "white-king";
+                            case 5: return "white-bishop";
+                            case 6: return "white-knight";
+                            case 7: return "white-rook";
+                        }
+                        break;
                 }
             }
+            else
+            {
+                switch (row)
+                {
+                    case 0:
+                        switch (col)
+                        {
+                            case 0: return "white-rook";
+                            case 1: return "white-knight";
+                            case 2: return "white-bishop";
+                            case 3: return "white-queen";
+                            case 4: return "white-king";
+                            case 5: return "white-bishop";
+                            case 6: return "white-knight";
+                            case 7: return "white-rook";
+                        }
+                        break;
+                    case 1: return "white-pawn";
+                    case 6: return "black-pawn";
+                    case 7:
+                        switch (col)
+                        {
+                            case 0: return "black-rook";
+                            case 1: return "black-knight";
+                            case 2: return "black-bishop";
+                            case 3: return "black-queen";
+                            case 4: return "black-king";
+                            case 5: return "black-bishop";
+                            case 6: return "black-knight";
+                            case 7: return "black-rook";
+                        }
+                        break;
+                }
+            }
+
             return "";
         }
+
     }
 }

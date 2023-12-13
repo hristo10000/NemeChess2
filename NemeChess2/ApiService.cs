@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using NemeChess2;
 using NemeChess2.Models;
 using System;
 using System.Diagnostics;
@@ -52,6 +53,12 @@ public class LichessApiService
             using (var request = new HttpRequestMessage(HttpMethod.Post, "https://lichess.org/api/challenge/ai"))
             {
                 request.Headers.Add("Authorization", $"Bearer {_apiToken}");
+                /*
+                 TODO: 
+                1: Send Request to create game. 
+                1.5: get game id
+                2: DetermineGameType(gameID) method: Try Casting to white game update, if deserialization is successful - continue, otherwise - try casting to black
+                */
                 request.Content = requestContent;
 
                 var response = await _httpClient.SendAsync(request);
