@@ -70,7 +70,6 @@ public class LichessApiService
                     }
                     catch (Exception ex)
                     {
-
                         throw;
                     }
                 }
@@ -161,43 +160,4 @@ public class LichessApiService
             Console.WriteLine($"Error in game stream: {ex.Message}");
         }
     }
-    private void HandleGameUpdate(GameUpdate gameUpdate)
-    {
-        switch (gameUpdate.Type)
-        {
-            case "gameFull":
-                HandleFullGameData(gameUpdate);
-                break;
-            case "gameState":
-                HandleGameState(gameUpdate);
-                break;
-            case "chatLine":
-                HandleChatMessage(gameUpdate);
-                break;
-            case "opponentGone":
-                HandleOpponentGone(gameUpdate);
-                break;
-        }
-    }
-
-    private void HandleFullGameData(GameUpdate gameUpdate)
-    {
-        Debug.WriteLine("Received full game data");
-    }
-
-    private void HandleGameState(GameUpdate gameUpdate)
-    {
-        Debug.WriteLine("Received game state update");
-    }
-
-    private void HandleChatMessage(GameUpdate gameUpdate)
-    {
-        Debug.WriteLine("Received chat message");
-    }
-
-    private void HandleOpponentGone(GameUpdate gameUpdate)
-    {
-        Debug.WriteLine("Opponent has left the game");
-    }
-
 }

@@ -63,6 +63,7 @@ namespace NemeChess2
             }
             catch (OperationCanceledException)
             {
+                throw;
             }
             catch (Exception ex)
             {

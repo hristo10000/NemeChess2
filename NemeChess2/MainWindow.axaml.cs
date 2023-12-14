@@ -181,7 +181,6 @@ namespace NemeChess2
                 Console.WriteLine("GameUpdate or State is null in game update.");
             }
         }
-
         public void UpdateChessboard(string moves)
         {
             if (Chessboard == null)
