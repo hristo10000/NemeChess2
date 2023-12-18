@@ -17,15 +17,14 @@ public class LichessApiService
     public LichessApiService(IConfiguration configuration)
     {
         _configuration = configuration;
-        _httpClient = new HttpClient();
         _apiToken = _configuration["Lichess:ApiToken"];
+
+        _httpClient = new HttpClient
+        {
+            BaseAddress = new Uri("https://lichess.org/api/")
+        };
     }
-    public LichessApiService(string apiToken)
-    {
-        _apiToken = apiToken;
-        _httpClient = new HttpClient();
-        _httpClient.BaseAddress = new Uri("https://lichess.org/api/");
-    }
+
     public async Task<LichessGame> CreateBotGameAsync()
     {
         try
@@ -76,17 +75,25 @@ public class LichessApiService
                 else
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Response Content: {content}");
+                    Debug.WriteLine($"Response Content: {content}");
 
-                    Console.WriteLine($"Failed to challenge AI. Status code: {response.StatusCode}");
-                    Console.WriteLine($"Response Content: {content}");
+                    Debug.WriteLine($"Failed to challenge AI. Status code: {response.StatusCode}");
+                    Debug.WriteLine($"Response Content: {content}");
                     return null;
                 }
             }
         }
-        catch (Exception ex)
+        catch (IOException ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            Debug.WriteLine($"IOException: {ex.Message}");
+            Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+            Debug.WriteLine($"InnerException: {ex.InnerException?.Message}");
+
+            throw;
+        }
+        catch (Exception ex) {
+        
+            Debug.WriteLine($"An error occurred: {ex.Message}");
             return null;
         }
     }
@@ -101,16 +108,24 @@ public class LichessApiService
 
             var response = await _httpClient.SendAsync(request);
 
-            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                Debug.WriteLine("Move successfully made.");
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"Failed to make move. Status code: {response.StatusCode}");
+                Debug.WriteLine($"Response Content: {content}");
 
-            Console.WriteLine("Move successfully made.");
+            }
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Error making move: {ex.Message}");
-            throw;
+            Debug.WriteLine($"Error making move: {ex.Message}");
         }
     }
+
     public async Task<LichessGame> GetChessboardState(string gameId)
     {
         try
@@ -128,13 +143,13 @@ public class LichessApiService
             }
             else
             {
-                Console.WriteLine("Failed to retrieve game state. Check the console for details.");
+                Debug.WriteLine("Failed to retrieve game state. Check the console for details.");
                 return null;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            Debug.WriteLine($"An error occurred: {ex.Message}");
             return null;
         }
     }
@@ -157,7 +172,7 @@ public class LichessApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in game stream: {ex.Message}");
+            Debug.WriteLine($"Error in game stream: {ex.Message}");
         }
     }
 }

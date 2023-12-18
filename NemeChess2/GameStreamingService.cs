@@ -35,6 +35,7 @@ namespace NemeChess2
         {
             try
             {
+                _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
                 if (_response == null) throw new ResponseNullException("There was an issue with initializing the game stream! First call GetInitialResponse()!");
                 using var reader = new StreamReader(_response);
 
@@ -46,7 +47,7 @@ namespace NemeChess2
 
                     if (line == string.Empty)
                     {
-                        Task.Delay(1000).Wait();
+                        await Task.Delay(1000);
                         continue;
                     }
                     if (IsWhite)
@@ -70,11 +71,13 @@ namespace NemeChess2
                 Debug.WriteLine($"Error in game stream: {ex.Message}");
             }
         }
+
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
-        {
-            using var _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
+         {
+            _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
             using var reader = new StreamReader(_response);
             var line = await reader.ReadLineAsync();
+            reader.Close();
             UpdateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
             return UpdateWhite?.White?.Id == "ico_i";
         }

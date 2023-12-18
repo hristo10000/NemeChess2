@@ -12,7 +12,8 @@ namespace NemeChess2
         }
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
-                .UsePlatformDetect();
+                .UsePlatformDetect()
+                .LogToTrace();
         private static void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<LichessApiService>();
