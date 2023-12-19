@@ -27,7 +27,6 @@ namespace NemeChess2
             _apiToken = apiToken ?? throw new ArgumentNullException(nameof(apiToken));
             _gameId = gameId ?? throw new ArgumentNullException(nameof(gameId));
             _handleGameUpdate = handleGameUpdate ?? throw new ArgumentNullException(nameof(handleGameUpdate));
-
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiToken}");
         }
@@ -44,10 +43,9 @@ namespace NemeChess2
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var line = await reader.ReadLineAsync();
-
                     if (line == string.Empty)
                     {
-                        await Task.Delay(1000);
+                        Thread.Sleep(1000);
                         continue;
                     }
                     if (IsWhite)
@@ -71,7 +69,6 @@ namespace NemeChess2
                 Debug.WriteLine($"Error in game stream: {ex.Message}");
             }
         }
-
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
          {
             _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);

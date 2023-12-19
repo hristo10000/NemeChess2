@@ -18,7 +18,6 @@ namespace NemeChess2
             }
             return null;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();
@@ -27,19 +26,16 @@ namespace NemeChess2
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
-
         public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
         }
-
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
         }
-
         private async void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
             var border = (Border)sender;

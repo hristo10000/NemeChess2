@@ -1,7 +1,6 @@
 ﻿using Avalonia.Media;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 
 namespace NemeChess2.ViewModels
@@ -11,10 +10,6 @@ namespace NemeChess2.ViewModels
         private IBrush? _background;
         private string? _piece;
         private bool _isSelected;
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
         private string? _squareName;
         public string? SquareName
         {
@@ -28,7 +23,6 @@ namespace NemeChess2.ViewModels
                 }
             }
         }
-
         public IBrush? Background
         {
             get { return _background; }
@@ -54,7 +48,6 @@ namespace NemeChess2.ViewModels
                 }
             }
         }
-
         public string? Piece
         {
             get { return _piece; }
@@ -89,11 +82,13 @@ namespace NemeChess2.ViewModels
             {
                 PieceImageSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pieces-basic", $"{Piece}.png");
             }
-
             SquareName = $"{(char)('a' + Column)}{8 - Row}";
             OnPropertyChanged(nameof(PieceImageSource));
             OnPropertyChanged(nameof(SquareName));
         }
-
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
