@@ -14,19 +14,20 @@ namespace NemeChess2
     {
         private readonly string _apiToken;
         private readonly Action<GameUpdate> _handleGameUpdate;
+        private readonly Action<GameUpdateGameState> _handleGameState;
         private readonly HttpClient _httpClient;
         private readonly string _gameId;
         private Stream _response;
-        public GameUpdateBlack UpdateBlack { get; set; }
-        public GameUpdateWhite UpdateWhite { get; set; }
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
 
-        public GameStreamingService(string apiToken, string gameId, Action<GameUpdate> handleGameUpdate)
+        public GameStreamingService(string apiToken, string gameId, Action<GameUpdate> handleGameUpdate, Action<GameUpdateGameState> handleGameState)
         {
+            //TODO: read api token from appsettings here
             _apiToken = apiToken ?? throw new ArgumentNullException(nameof(apiToken));
             _gameId = gameId ?? throw new ArgumentNullException(nameof(gameId));
             _handleGameUpdate = handleGameUpdate ?? throw new ArgumentNullException(nameof(handleGameUpdate));
+            _handleGameState = handleGameState ?? throw new ArgumentNullException(nameof(handleGameState));
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiToken}");
         }
@@ -48,25 +49,35 @@ namespace NemeChess2
                         Thread.Sleep(1000);
                         continue;
                     }
-                    if (IsWhite)
+                    var updateGameState = JsonConvert.DeserializeObject<GameUpdateGameState>(line);
+                    if (updateGameState.Moves != null)
                     {
-                        UpdateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
-                        _handleGameUpdate.Invoke(UpdateWhite);
+                        _handleGameState.Invoke(updateGameState);
                     }
                     else
                     {
-                        UpdateBlack = JsonConvert.DeserializeObject<GameUpdateBlack>(line);
-                        _handleGameUpdate.Invoke(UpdateBlack);
+                        GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);//TODO: make an interface for GameUpdate
+                        _handleGameUpdate.Invoke(update);//TODO: when the identical classes are merged into one, use _updateGameState
+/*                        if (IsWhite)
+                        {
+                            var updateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
+                            _handleGameUpdate.Invoke(updateWhite);
+                        }
+                        else
+                        {
+                            var updateBlack = JsonConvert.DeserializeObject<GameUpdateBlack>(line);
+                            _handleGameUpdate.Invoke(updateBlack);
+                        }*/
                     }
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException)//TODO: add custom exception with a meaningful message
             {
                 throw;
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error in game stream: {ex.Message}");
+                throw;
             }
         }
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
@@ -75,8 +86,9 @@ namespace NemeChess2
             using var reader = new StreamReader(_response);
             var line = await reader.ReadLineAsync();
             reader.Close();
-            UpdateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
-            return UpdateWhite?.White?.Id == "ico_i";
+            var updateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
+            IsWhite = updateWhite?.White?.Id == "ico_i";//TODO: user id in appasettings, difficulty also in app settings, low prio
+            return IsWhite;
         }
         public void Dispose()
         {

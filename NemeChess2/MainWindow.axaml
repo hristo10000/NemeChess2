@@ -6,13 +6,13 @@
         mc:Ignorable="d"
         x:Class="NemeChess2.MainWindow"
         x:DataType="nc:MainViewModel"
-        Title="Chess App" Width="720" Height="720">
+        Title="NemeChess" Width="720" Height="720">
 
 	<Window.Resources>
 		<nc:ImagePathConverter x:Key="ImagePathConverter"/>
 	</Window.Resources>
 
-	<Grid>
+	<Grid Width="720" Height="720" HorizontalAlignment="Center" VerticalAlignment="Center">
 		<ItemsControl ItemsSource="{Binding Chessboard}" Name="ChessboardGrid">
 			<ItemsControl.ItemsPanel>
 				<ItemsPanelTemplate>
@@ -31,5 +31,6 @@
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>
+		
 	</Grid>
 </Window>

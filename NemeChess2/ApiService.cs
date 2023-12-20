@@ -24,7 +24,6 @@ public class LichessApiService
             BaseAddress = new Uri("https://lichess.org/api/")
         };
     }
-
     public async Task<LichessGame> CreateBotGameAsync()
     {
         try
@@ -75,8 +74,6 @@ public class LichessApiService
                 else
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Response Content: {content}");
-
                     Debug.WriteLine($"Failed to challenge AI. Status code: {response.StatusCode}");
                     Debug.WriteLine($"Response Content: {content}");
                     return null;
@@ -91,13 +88,12 @@ public class LichessApiService
 
             throw;
         }
-        catch (Exception ex) {
-        
-            Debug.WriteLine($"An error occurred: {ex.Message}");
-            return null;
+        catch{
+
+            throw;
         }
     }
-    public async Task MakeMoveAsync(string gameId, string move, bool offeringDraw = false)
+    public async Task MakeMoveAsync(string gameId, string move, bool offeringDraw = false)//TODO: make it Task<bool>, returns if the move is successful
     {
         try
         {
@@ -110,7 +106,6 @@ public class LichessApiService
 
             if (response.IsSuccessStatusCode)
             {
-                Debug.WriteLine("Move successfully made.");
             }
             else
             {
@@ -123,34 +118,6 @@ public class LichessApiService
         catch (HttpRequestException ex)
         {
             Debug.WriteLine($"Error making move: {ex.Message}");
-        }
-    }
-
-    public async Task<LichessGame> GetChessboardState(string gameId)
-    {
-        try
-        {
-            var response = await _httpClient.GetStringAsync($"https://lichess.org/api/game/{gameId}");
-
-            if (!string.IsNullOrEmpty(response))
-            {
-                var lichessGame = JsonSerializer.Deserialize<LichessGame>(response, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return lichessGame;
-            }
-            else
-            {
-                Debug.WriteLine("Failed to retrieve game state. Check the console for details.");
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"An error occurred: {ex.Message}");
-            return null;
         }
     }
     public async Task StartGameStream(string gameId, Action<GameUpdate> handleGameUpdate)

@@ -48,14 +48,10 @@ namespace NemeChess2
             }
             else
             {
-                if (_viewModel.SelectedSquare != null)
-                {
-                    var move = $"{Convert.ToChar('a' + _viewModel.SelectedSquare.Column)}{_viewModel.SelectedSquare.Row + 1}{Convert.ToChar('a' + square.Column)}{square.Row + 1}";
-                    Debug.WriteLine(move);
-                    await _viewModel.MakeMoveAsync(move);
-                    _viewModel.SelectedSquare.IsSelected = false;
-                    _viewModel.SelectedSquare = null;
-                }
+                var move = _viewModel.SelectedSquare.SquareName + square.SquareName;
+                await _viewModel.MakeMoveAsync(move);
+                _viewModel.SelectedSquare.IsSelected = false;
+                _viewModel.SelectedSquare = null;
             }
         }
     }

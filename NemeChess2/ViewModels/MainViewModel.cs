@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using System.Linq;
 using DynamicData;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace NemeChess2
 {
@@ -16,7 +14,6 @@ namespace NemeChess2
     {
         private readonly LichessApiService _lichessApiService;
         private ChessSquare? _selectedSquare;
-
         public ChessSquare? SelectedSquare
         {
             get { return _selectedSquare; }
@@ -33,6 +30,7 @@ namespace NemeChess2
         private List<ChessSquare> _chessboard = new List<ChessSquare>();
         private GameStreamingService _gameStreamingService;
         public bool IsWhite { get; set; }
+        public bool IsMyTurn { get; set; }
         public LichessGame CurrentGame;
         public List<ChessSquare> Chessboard
         {
@@ -59,15 +57,13 @@ namespace NemeChess2
                     if (lichessGame != null && !string.IsNullOrEmpty(lichessGame.Id))
                     {
                         _gameId = lichessGame.Id;
-                        Debug.WriteLine($"Bot game created! Game ID: {_gameId}");
-
-                        _gameStreamingService = new GameStreamingService("lip_JYrY3vNv29oHJWFb4XLN", _gameId, HandleGameUpdate);
+                        _gameStreamingService = new GameStreamingService("lip_JYrY3vNv29oHJWFb4XLN", _gameId, HandleGameUpdate, HandleGameState);//TODO: use appsettings for the api token
                         IsWhite = await _gameStreamingService.GetInitialResponse();
-                        Debug.WriteLine(IsWhite ? "You're White!" : "You're Black");
+                        IsMyTurn = IsWhite;
                     }
                     else
                     {
-                        Debug.WriteLine("Failed to create a bot game. Check the console for details.");
+                        Debug.WriteLine("Failed to create a bot game.");
                     }
                 }
                 catch (Exception ex)
@@ -76,88 +72,87 @@ namespace NemeChess2
                 }
             }).GetAwaiter().GetResult();
             Chessboard = GenerateChessboard(IsWhite);
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 _gameStreamingService.StartStreamingAsync();
-                Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    OnPropertyChanged(nameof(Chessboard));
-                });
             });
         }
         private void HandleGameUpdate(GameUpdate gameUpdate)
         {
-            try
+            var moveList = gameUpdate.State.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            IsMyTurn = !IsMyTurn;
+            if (moveList.Length > 0)
             {
-                if (gameUpdate != null && gameUpdate.State != null)
+                if (gameUpdate.State.Status == "mate")
                 {
-                    if (gameUpdate.State.Moves != null)
-                    {
-                        UpdateChessboard(gameUpdate.State.Moves);
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Moves property is null in game update.");
-                    }
+                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: pop up
                 }
-                else
-                {
-                    Debug.WriteLine("GameUpdate or State is null in game update.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in HandleGameUpdate: {ex.Message}");
+                var lastMove = moveList[moveList.Length - 1];
+                UpdateChessboard(lastMove);
             }
         }
-        public void UpdateChessboard(string moves)
+        private void HandleGameState(GameUpdateGameState gameState)
         {
-            if (Chessboard == null)
+            var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            IsMyTurn = !IsMyTurn;
+            if (moveList.Length > 0)
             {
-                Debug.WriteLine("Chessboard is null");
-                return;
+                if (gameState.Status == "mate")
+                {
+                    Debug.WriteLine(IsMyTurn ? "You Loose!" : "You Win!");//TODO: pop up
+                }
+                var lastMove = moveList[moveList.Length - 1];
+                UpdateChessboard(lastMove);
             }
-            var moveList = moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var move in moveList)
+        }
+        public void UpdateChessboard(string lastMove)
+        {
+            try
             {
-                if (move.Length == 4)
+                var fromSquareName = lastMove.Substring(0, 2);
+                var toSquareName = lastMove.Substring(2, 2);
+
+                var fromSquare = FindSquareByName(fromSquareName);
+                var toSquare = FindSquareByName(toSquareName);
+
+                toSquare.Piece = fromSquare.Piece;
+                fromSquare.Piece = "";
+                fromSquare.IsSelected = false;//TODO: try removing
+
+                fromSquare.UpdatePieceImageSource();
+                toSquare.UpdatePieceImageSource();//TODO: try removing one of the ways to update the images . low prio
+
+                OnPropertyChanged(nameof(Chessboard));
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
+            }
+        }
+        private ChessSquare FindSquareByName(string squareName)
+        {
+            foreach (var square in Chessboard)
+            {
+                if (square.SquareName == squareName)
                 {
-                    var fromSquare = Chessboard.FirstOrDefault(square => square.Row == (move[0] - '1') && square.Column == (move[1] - 'a'));
-                    var toSquare = Chessboard.FirstOrDefault(square => square.Row == (move[2] - '1') && square.Column == (move[3] - 'a'));
-                    if (fromSquare != null && toSquare != null)
-                    {
-                        string tempPiece = fromSquare.Piece;
-                        fromSquare.Piece = toSquare.Piece;
-                        toSquare.Piece = tempPiece;
-                        fromSquare.UpdatePieceImageSource();
-                        toSquare.UpdatePieceImageSource();
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Invalid move format: {move}");
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine($"Invalid move format: {move}");
+                    return square;
                 }
             }
-            OnPropertyChanged(nameof(Chessboard));
+            Debug.WriteLine($"Couldn't find {squareName}, will return null.");
+            return null;
         }
         public async Task MakeMoveAsync(string move)
         {
             try
             {
                 await _lichessApiService.MakeMoveAsync(_gameId, move);
-
-                Debug.WriteLine($"Move {move} played successfully.");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error making move: {ex.Message}");
             }
         }
-        public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
+        public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)//TODO: make a private dictionary for chessboard to help with searches etc.
         {
             for (int row = 0; row < 8; row++)
             {
@@ -185,7 +180,6 @@ namespace NemeChess2
             {
                 return "Invalid position";
             }
-
             if (isWhite)
             {
                 switch (row)

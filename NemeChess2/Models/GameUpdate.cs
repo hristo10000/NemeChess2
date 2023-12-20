@@ -1,19 +1,25 @@
-﻿using Newtonsoft.Json;
-
-namespace NemeChess2.Models
+﻿namespace NemeChess2.Models
 {
+    public class GameUpdateGameState //TODO: remove, use game state event instead
+    {
+        public string Moves { get; set; }
+        public int Wtime { get; set; }
+        public int Btime { get; set; }
+        public int Winc { get; set; }
+        public int Binc { get; set; }
+        public string Status { get; set; }
+    }
     public class GameUpdate
     {
+        public string Type { get; set; }
         public string Id { get; set; }
+        public bool Rated { get; set; }
         public Variant Variant { get; set; }
+        public Clock Clock { get; set; }
         public string Speed { get; set; }
         public Perf Perf { get; set; }
-        [JsonProperty("rated")]
-        public bool Rated { get; set; }
         public long CreatedAt { get; set; }
         public string InitialFen { get; set; }
-        public Clock Clock { get; set; }
-        public string Type { get; set; }
         public GameStateEvent State { get; set; }
     }
     public class Clock
@@ -35,7 +41,7 @@ namespace NemeChess2.Models
     }
     public class GameStateEvent
     {
-        public string Type { get; set; }
+        public string? Type { get; set; }
         public string Moves { get; set; }
         public long Wtime { get; set; }
         public long Btime { get; set; }

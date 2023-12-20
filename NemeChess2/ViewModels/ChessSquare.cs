@@ -80,11 +80,14 @@ namespace NemeChess2.ViewModels
         {
             if (!string.IsNullOrEmpty(Piece))
             {
-                PieceImageSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pieces-basic", $"{Piece}.png");
+                string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pieces-basic", $"{Piece}.png");
+                PieceImageSource = imagePath;
             }
-            SquareName = $"{(char)('a' + Column)}{8 - Row}";
+            else
+            {
+                PieceImageSource = null;
+            }
             OnPropertyChanged(nameof(PieceImageSource));
-            OnPropertyChanged(nameof(SquareName));
         }
         private void OnPropertyChanged(string propertyName)
         {
