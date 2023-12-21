@@ -76,7 +76,7 @@ namespace NemeChess2.ViewModels
             }
         }
         public event PropertyChangedEventHandler? PropertyChanged;
-        public void UpdatePieceImageSource()
+        public void UpdatePieceImageSource()//TODO: check if neccessary, if not delete
         {
             if (!string.IsNullOrEmpty(Piece))
             {

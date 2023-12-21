@@ -78,6 +78,13 @@
 
 
   <ItemGroup>
+    <Compile Update="CustomPopUp.axaml.cs">
+      <DependentUpon>CustomPopUp.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

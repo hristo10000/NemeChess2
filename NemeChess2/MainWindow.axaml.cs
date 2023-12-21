@@ -5,22 +5,10 @@ using NemeChess2.ViewModels;
 using System.Diagnostics;
 using System;
 using Avalonia.Data.Converters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace NemeChess2
 {
-    public class CustomPopup : Window
-    {
-        public CustomPopup(string message)
-        {
-            InitializeComponent();
-            this.FindControl<TextBlock>("MessageText").Text = message;
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-    }
     public class ImagePathConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -39,11 +27,11 @@ namespace NemeChess2
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
-        public MainWindow(MainViewModel viewModel)
+        public MainWindow(IServiceProvider provider)
         {
             InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = _viewModel;
+            _viewModel = provider.GetRequiredService<MainViewModel>();
+            DataContext = _viewModel;//TODO: check which instance of datacontext isnt needed and remove it
         }
         private void InitializeComponent()
         {
@@ -51,6 +39,8 @@ namespace NemeChess2
         }
         private async void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
+            var popup = new CustomPopUp("You Loose!");
+            popup.ShowDialog(this);
             var border = (Border)sender;
             var square = (ChessSquare)border.DataContext;
 

@@ -34,7 +34,7 @@
 			</ItemsControl>
 		</Grid>
 
-		<TextBlock x:Name="MessageText" VerticalAlignment="Center" HorizontalAlignment="Center" />
+		
 
 	</StackPanel>
 </Window>

@@ -3,7 +3,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using NemeChess2.ViewModels;
 using System;
 
 namespace NemeChess2
@@ -25,7 +24,7 @@ namespace NemeChess2
                     .AddJsonFile("appsettings.json")
                     .Build();
 
-
+                
                 var services = new ServiceCollection();
                 services.AddSingleton(configuration);
                 services.AddSingleton<LichessApiService>(_ => new LichessApiService(configuration));
@@ -33,7 +32,7 @@ namespace NemeChess2
 
                 ServiceProvider = services.BuildServiceProvider();
 
-                desktop.MainWindow = new MainWindow(ServiceProvider.GetService<MainViewModel>())
+                desktop.MainWindow = new MainWindow(ServiceProvider)
                 {
                     DataContext = ServiceProvider.GetService<MainViewModel>()
                 };

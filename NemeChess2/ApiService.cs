@@ -93,7 +93,7 @@ public class LichessApiService
             throw;
         }
     }
-    public async Task<bool> MakeMoveAsync(string gameId, string move)
+    public async Task<bool> MakeMoveAsync(string gameId, string move)//TODO: highlight squares to improve the ux
     {
         try
         {

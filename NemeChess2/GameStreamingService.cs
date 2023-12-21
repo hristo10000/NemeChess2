@@ -12,7 +12,7 @@ namespace NemeChess2
 {
     public class GameStreamingService : IDisposable
     {
-        private readonly IConfiguration _configuration;
+        private readonly IConfigurationRoot _configuration;
         private readonly string _apiToken;
         private readonly Action<GameStateEvent> _handleGameState;
         private readonly HttpClient _httpClient;
@@ -21,7 +21,7 @@ namespace NemeChess2
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
 
-        public GameStreamingService(IConfiguration configuration, string gameId, Action<GameStateEvent> handleGameState)
+        public GameStreamingService(IConfigurationRoot configuration, string gameId, Action<GameStateEvent> handleGameState)
         {
             _configuration = configuration;
             _apiToken = _configuration["Lichess:ApiToken"] ?? throw new ArgumentNullException(nameof(configuration));
@@ -46,7 +46,7 @@ namespace NemeChess2
                     var line = await reader.ReadLineAsync();
                     if (line == string.Empty)
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(1000);//TODO: instantly update when i make a move
                         continue;
                     }
                     var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);

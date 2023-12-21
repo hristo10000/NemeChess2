@@ -46,10 +46,11 @@ namespace NemeChess2
             }
         }
         private Dictionary<string, ChessSquare> _chessboardDictionary = new Dictionary<string, ChessSquare>();
-        private readonly IConfiguration _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true, reloadOnChange: true).Build();
-        public MainViewModel(LichessApiService lichessApiService)
+        private readonly IConfigurationRoot _configuration;
+        public MainViewModel(LichessApiService lichessApiService, IConfigurationRoot configuration)
         {
             _lichessApiService = lichessApiService;
+            _configuration = configuration;
             Chessboard = new List<ChessSquare>();
             Task.Run(async () =>
             {
@@ -75,36 +76,11 @@ namespace NemeChess2
                 }
             }).GetAwaiter().GetResult();
             Chessboard = GenerateChessboard(IsWhite);
-            PopulateChessboardDictionary();
             Task.Run(() =>
             {
                 _gameStreamingService.StartStreamingAsync();
             });
         }
-
-        private void PopulateChessboardDictionary()
-        {
-            foreach (var square in Chessboard)
-            {
-                _chessboardDictionary[square.SquareName] = square;
-            }
-        }
-
-/*       private void HandleGameUpdate(GameUpdate gameUpdate)
-        {
-            var moveList = gameUpdate.State.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            IsMyTurn = !IsMyTurn;
-            if (moveList.Length > 0)
-            {
-                if (gameUpdate.State.Status == "mate")
-                {
-                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup
-                }
-                var lastMove = moveList[moveList.Length - 1];
-                UpdateChessboard(lastMove);
-            }
-        }
-*/
         private void HandleGameState(GameStateEvent gameState)
         {
             var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -113,13 +89,12 @@ namespace NemeChess2
             {
                 if (gameState.Status == "mate")
                 {
-                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup
+                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup, test if it works properly
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
             }
         }
-
         public void UpdateChessboard(string lastMove)
         {
             try
@@ -140,38 +115,6 @@ namespace NemeChess2
                 Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
             }
         }
-        /*        public void UpdateChessboard(string lastMove)
-                {
-                    try
-                    {
-                        var fromSquareName = lastMove.Substring(0, 2);
-                        var toSquareName = lastMove.Substring(2, 2);
-
-                        var fromSquare = FindSquareByName(fromSquareName);
-                        var toSquare = FindSquareByName(toSquareName);
-
-                        toSquare.Piece = fromSquare.Piece;
-                        fromSquare.Piece = "";
-
-                        OnPropertyChanged(nameof(Chessboard));
-                    }
-                    catch(Exception ex)
-                    {
-                        Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
-                    }
-                }*/
-/*        private ChessSquare FindSquareByName(string squareName)
-        {
-            foreach (var square in Chessboard)
-            {
-                if (square.SquareName == squareName)
-                {
-                    return square;
-                }
-            }
-            Debug.WriteLine($"Couldn't find {squareName}, will return null.");
-            return null;
-        }*/
         public async Task MakeMoveAsync(string move)
         {
             try
@@ -187,7 +130,6 @@ namespace NemeChess2
         {
             for (int row = 0; row < 8; row++)
             {
-                List<ChessSquare> rowSquares = new List<ChessSquare>();
 
                 for (int col = 0; col < 8; col++)
                 {
@@ -199,9 +141,9 @@ namespace NemeChess2
                         Column = col,
                         SquareName = $"{Convert.ToChar('a' + col)}{(isWhitePlayer ? (8 - row).ToString() : (row + 1).ToString())}",
                     };
-                    rowSquares.Add(square);
+                    Chessboard.Add(square);
+                    _chessboardDictionary[square.SquareName] = square;
                 }
-                Chessboard.Add(rowSquares);
             }
             return Chessboard;
         }
