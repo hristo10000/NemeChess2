@@ -25,6 +25,7 @@ namespace NemeChess2
                     .AddJsonFile("appsettings.json")
                     .Build();
 
+
                 var services = new ServiceCollection();
                 services.AddSingleton(configuration);
                 services.AddSingleton<LichessApiService>(_ => new LichessApiService(configuration));

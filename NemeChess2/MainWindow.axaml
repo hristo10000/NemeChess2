@@ -12,25 +12,29 @@
 		<nc:ImagePathConverter x:Key="ImagePathConverter"/>
 	</Window.Resources>
 
-	<Grid Width="720" Height="720" HorizontalAlignment="Center" VerticalAlignment="Center">
-		<ItemsControl ItemsSource="{Binding Chessboard}" Name="ChessboardGrid">
-			<ItemsControl.ItemsPanel>
-				<ItemsPanelTemplate>
-					<UniformGrid Rows="8" Columns="8"/>
-				</ItemsPanelTemplate>
-			</ItemsControl.ItemsPanel>
+	<StackPanel>
+		<Grid Width="720" Height="720" HorizontalAlignment="Center" VerticalAlignment="Center">
+			<ItemsControl ItemsSource="{Binding Chessboard}" Name="ChessboardGrid">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<UniformGrid Rows="8" Columns="8"/>
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
 
-			<ItemsControl.ItemTemplate>
-				<DataTemplate>
-					<Border Background="{Binding Background}" Width="90" Height="90" BorderBrush="Black" BorderThickness="1" PointerPressed="Square_OnPointerPressed">
-						<Grid>
-							<TextBlock Text="{Binding SquareName}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Foreground="Blue"/>
-							<Image Source="{Binding PieceImageSource, Converter={StaticResource ImagePathConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="Uniform"/>
-						</Grid>
-					</Border>
-				</DataTemplate>
-			</ItemsControl.ItemTemplate>
-		</ItemsControl>
-		
-	</Grid>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<Border Background="{Binding Background}" Width="90" Height="90" BorderBrush="Black" BorderThickness="1" PointerPressed="Square_OnPointerPressed">
+							<Grid>
+								<TextBlock Text="{Binding SquareName}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Foreground="Blue"/>
+								<Image Source="{Binding PieceImageSource, Converter={StaticResource ImagePathConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="Uniform"/>
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</Grid>
+
+		<TextBlock x:Name="MessageText" VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+	</StackPanel>
 </Window>

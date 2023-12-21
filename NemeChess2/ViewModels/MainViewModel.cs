@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using DynamicData;
 using Avalonia.Media;
+using Microsoft.Extensions.Configuration;
 
 namespace NemeChess2
 {
@@ -44,6 +45,8 @@ namespace NemeChess2
                 }
             }
         }
+        private Dictionary<string, ChessSquare> _chessboardDictionary = new Dictionary<string, ChessSquare>();
+        private readonly IConfiguration _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true, reloadOnChange: true).Build();
         public MainViewModel(LichessApiService lichessApiService)
         {
             _lichessApiService = lichessApiService;
@@ -57,7 +60,7 @@ namespace NemeChess2
                     if (lichessGame != null && !string.IsNullOrEmpty(lichessGame.Id))
                     {
                         _gameId = lichessGame.Id;
-                        _gameStreamingService = new GameStreamingService("lip_JYrY3vNv29oHJWFb4XLN", _gameId, HandleGameUpdate, HandleGameState);//TODO: use appsettings for the api token
+                        _gameStreamingService = new GameStreamingService(_configuration, _gameId, HandleGameState);
                         IsWhite = await _gameStreamingService.GetInitialResponse();
                         IsMyTurn = IsWhite;
                     }
@@ -72,12 +75,22 @@ namespace NemeChess2
                 }
             }).GetAwaiter().GetResult();
             Chessboard = GenerateChessboard(IsWhite);
+            PopulateChessboardDictionary();
             Task.Run(() =>
             {
                 _gameStreamingService.StartStreamingAsync();
             });
         }
-        private void HandleGameUpdate(GameUpdate gameUpdate)
+
+        private void PopulateChessboardDictionary()
+        {
+            foreach (var square in Chessboard)
+            {
+                _chessboardDictionary[square.SquareName] = square;
+            }
+        }
+
+/*       private void HandleGameUpdate(GameUpdate gameUpdate)
         {
             var moveList = gameUpdate.State.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             IsMyTurn = !IsMyTurn;
@@ -85,13 +98,14 @@ namespace NemeChess2
             {
                 if (gameUpdate.State.Status == "mate")
                 {
-                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: pop up
+                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
             }
         }
-        private void HandleGameState(GameUpdateGameState gameState)
+*/
+        private void HandleGameState(GameStateEvent gameState)
         {
             var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             IsMyTurn = !IsMyTurn;
@@ -99,12 +113,13 @@ namespace NemeChess2
             {
                 if (gameState.Status == "mate")
                 {
-                    Debug.WriteLine(IsMyTurn ? "You Loose!" : "You Win!");//TODO: pop up
+                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
             }
         }
+
         public void UpdateChessboard(string lastMove)
         {
             try
@@ -112,24 +127,40 @@ namespace NemeChess2
                 var fromSquareName = lastMove.Substring(0, 2);
                 var toSquareName = lastMove.Substring(2, 2);
 
-                var fromSquare = FindSquareByName(fromSquareName);
-                var toSquare = FindSquareByName(toSquareName);
+                var fromSquare = _chessboardDictionary[fromSquareName];
+                var toSquare = _chessboardDictionary[toSquareName];
 
                 toSquare.Piece = fromSquare.Piece;
                 fromSquare.Piece = "";
-                fromSquare.IsSelected = false;//TODO: try removing
-
-                fromSquare.UpdatePieceImageSource();
-                toSquare.UpdatePieceImageSource();//TODO: try removing one of the ways to update the images . low prio
 
                 OnPropertyChanged(nameof(Chessboard));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
             }
         }
-        private ChessSquare FindSquareByName(string squareName)
+        /*        public void UpdateChessboard(string lastMove)
+                {
+                    try
+                    {
+                        var fromSquareName = lastMove.Substring(0, 2);
+                        var toSquareName = lastMove.Substring(2, 2);
+
+                        var fromSquare = FindSquareByName(fromSquareName);
+                        var toSquare = FindSquareByName(toSquareName);
+
+                        toSquare.Piece = fromSquare.Piece;
+                        fromSquare.Piece = "";
+
+                        OnPropertyChanged(nameof(Chessboard));
+                    }
+                    catch(Exception ex)
+                    {
+                        Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
+                    }
+                }*/
+/*        private ChessSquare FindSquareByName(string squareName)
         {
             foreach (var square in Chessboard)
             {
@@ -140,7 +171,7 @@ namespace NemeChess2
             }
             Debug.WriteLine($"Couldn't find {squareName}, will return null.");
             return null;
-        }
+        }*/
         public async Task MakeMoveAsync(string move)
         {
             try
@@ -152,7 +183,7 @@ namespace NemeChess2
                 Debug.WriteLine($"Error making move: {ex.Message}");
             }
         }
-        public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)//TODO: make a private dictionary for chessboard to help with searches etc.
+        public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
         {
             for (int row = 0; row < 8; row++)
             {

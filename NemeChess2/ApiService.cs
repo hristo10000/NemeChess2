@@ -28,7 +28,7 @@ public class LichessApiService
     {
         try
         {
-            int level = 5;
+            int level = int.Parse(_configuration["Lichess:AiDifficulty"]);
             int clockLimit = 10800;
             int clockIncrement = 5;
             int days = 1;
@@ -93,7 +93,7 @@ public class LichessApiService
             throw;
         }
     }
-    public async Task MakeMoveAsync(string gameId, string move, bool offeringDraw = false)//TODO: make it Task<bool>, returns if the move is successful
+    public async Task<bool> MakeMoveAsync(string gameId, string move)
     {
         try
         {
@@ -104,20 +104,15 @@ public class LichessApiService
 
             var response = await _httpClient.SendAsync(request);
 
-            if (response.IsSuccessStatusCode)
-            {
-            }
-            else
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine($"Failed to make move. Status code: {response.StatusCode}");
-                Debug.WriteLine($"Response Content: {content}");
-
-            }
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine($"Failed to make move. Status code: {response.StatusCode}");
+            Debug.WriteLine($"Response Content: {content}");
+            return true;
         }
         catch (HttpRequestException ex)
-        {
+        { 
             Debug.WriteLine($"Error making move: {ex.Message}");
+            return false;
         }
     }
     public async Task StartGameStream(string gameId, Action<GameUpdate> handleGameUpdate)

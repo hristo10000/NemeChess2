@@ -1,8 +1,8 @@
-﻿using NemeChess2.Exceptions;
+﻿using Microsoft.Extensions.Configuration;
+using NemeChess2.Exceptions;
 using NemeChess2.Models;
 using Newtonsoft.Json;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -12,25 +12,25 @@ namespace NemeChess2
 {
     public class GameStreamingService : IDisposable
     {
+        private readonly IConfiguration _configuration;
         private readonly string _apiToken;
-        private readonly Action<GameUpdate> _handleGameUpdate;
-        private readonly Action<GameUpdateGameState> _handleGameState;
+        private readonly Action<GameStateEvent> _handleGameState;
         private readonly HttpClient _httpClient;
         private readonly string _gameId;
         private Stream _response;
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
 
-        public GameStreamingService(string apiToken, string gameId, Action<GameUpdate> handleGameUpdate, Action<GameUpdateGameState> handleGameState)
+        public GameStreamingService(IConfiguration configuration, string gameId, Action<GameStateEvent> handleGameState)
         {
-            //TODO: read api token from appsettings here
-            _apiToken = apiToken ?? throw new ArgumentNullException(nameof(apiToken));
+            _configuration = configuration;
+            _apiToken = _configuration["Lichess:ApiToken"] ?? throw new ArgumentNullException(nameof(configuration));
             _gameId = gameId ?? throw new ArgumentNullException(nameof(gameId));
-            _handleGameUpdate = handleGameUpdate ?? throw new ArgumentNullException(nameof(handleGameUpdate));
             _handleGameState = handleGameState ?? throw new ArgumentNullException(nameof(handleGameState));
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiToken}");
         }
+
         public async Task StartStreamingAsync(CancellationToken cancellationToken = default)
         {
             try
@@ -49,35 +49,25 @@ namespace NemeChess2
                         Thread.Sleep(1000);
                         continue;
                     }
-                    var updateGameState = JsonConvert.DeserializeObject<GameUpdateGameState>(line);
+                    var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);
                     if (updateGameState.Moves != null)
                     {
                         _handleGameState.Invoke(updateGameState);
                     }
                     else
                     {
-                        GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);//TODO: make an interface for GameUpdate
-                        _handleGameUpdate.Invoke(update);//TODO: when the identical classes are merged into one, use _updateGameState
-/*                        if (IsWhite)
-                        {
-                            var updateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
-                            _handleGameUpdate.Invoke(updateWhite);
-                        }
-                        else
-                        {
-                            var updateBlack = JsonConvert.DeserializeObject<GameUpdateBlack>(line);
-                            _handleGameUpdate.Invoke(updateBlack);
-                        }*/
+                        GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);
+                        _handleGameState.Invoke(update.State);
                     }
                 }
             }
-            catch (OperationCanceledException)//TODO: add custom exception with a meaningful message
+            catch (OperationCanceledException)
             {
-                throw;
+                throw new StreamStoppedUnexpectedlyEception("The stream has stopped working unexpectedly!");
             }
             catch
             {
-                throw;
+                throw new Exception("Unexpected error with the stream occured!");
             }
         }
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
@@ -87,7 +77,7 @@ namespace NemeChess2
             var line = await reader.ReadLineAsync();
             reader.Close();
             var updateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
-            IsWhite = updateWhite?.White?.Id == "ico_i";//TODO: user id in appasettings, difficulty also in app settings, low prio
+            IsWhite = updateWhite?.White?.Id == _configuration["Lichess:UserId"];
             return IsWhite;
         }
         public void Dispose()

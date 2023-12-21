@@ -1,6 +1,9 @@
 ﻿namespace NemeChess2.Models
 {
-    public class GameUpdateGameState //TODO: remove, use game state event instead
+    public interface IGameUpdate
+    {
+    }
+/*    public class GameUpdateGameState //TODO: remove, use game state event instead
     {
         public string Moves { get; set; }
         public int Wtime { get; set; }
@@ -8,8 +11,8 @@
         public int Winc { get; set; }
         public int Binc { get; set; }
         public string Status { get; set; }
-    }
-    public class GameUpdate
+    }*/
+    public class GameUpdate : IGameUpdate
     {
         public string Type { get; set; }
         public string Id { get; set; }
