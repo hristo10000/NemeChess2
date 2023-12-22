@@ -1,7 +1,17 @@
 ﻿namespace NemeChess2.Models
 {
-    public interface IGameUpdate//TODO: move properties here, remove them from the class, if possible
+    public interface IGameUpdate
     {
+        public string Type { get; set; }
+        public string Id { get; set; }
+        public bool Rated { get; set; }
+        public Variant Variant { get; set; }
+        public Clock Clock { get; set; }
+        public string Speed { get; set; }
+        public Perf Perf { get; set; }
+        public long CreatedAt { get; set; }
+        public string InitialFen { get; set; }
+        public GameStateEvent State { get; set; }
     }
 
     public class GameUpdate : IGameUpdate

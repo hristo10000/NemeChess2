@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using DynamicData;
 using Avalonia.Media;
 using Microsoft.Extensions.Configuration;
 
@@ -89,7 +88,8 @@ namespace NemeChess2
             {
                 if (gameState.Status == "mate")
                 {
-                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");//TODO: Add a poppup, test if it works properly
+                    Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");
+                    _gameStreamingService.Dispose();
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
@@ -124,7 +124,7 @@ namespace NemeChess2
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error making move: {ex.Message}");
-            }
+            }                 
         }
         public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
         {

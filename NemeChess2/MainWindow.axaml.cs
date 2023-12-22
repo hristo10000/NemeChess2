@@ -2,7 +2,6 @@
 using Avalonia.Markup.Xaml;
 using Avalonia.Input;
 using NemeChess2.ViewModels;
-using System.Diagnostics;
 using System;
 using Avalonia.Data.Converters;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +30,6 @@ namespace NemeChess2
         {
             InitializeComponent();
             _viewModel = provider.GetRequiredService<MainViewModel>();
-            DataContext = _viewModel;//TODO: check which instance of datacontext isnt needed and remove it
         }
         private void InitializeComponent()
         {
@@ -39,8 +37,7 @@ namespace NemeChess2
         }
         private async void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
-            var popup = new CustomPopUp("You Loose!");
-            popup.ShowDialog(this);
+            GameOverWindow();
             var border = (Border)sender;
             var square = (ChessSquare)border.DataContext;
 
@@ -56,6 +53,11 @@ namespace NemeChess2
                 _viewModel.SelectedSquare.IsSelected = false;
                 _viewModel.SelectedSquare = null;
             }
+        }
+        public void GameOverWindow()
+        {
+            var popup = new CustomPopUp("You Loose!");
+            popup.ShowDialog(this);
         }
     }
 }

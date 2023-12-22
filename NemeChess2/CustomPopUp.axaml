@@ -2,8 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:a="using:Avalonia.Animation"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="NemeChess2.CustomPopUp"
         Title="Game Over">
-<TextBlock x:Name="MessageText" VerticalAlignment="Center" HorizontalAlignment="Center" />
+    <Grid>
+        <TextBlock x:Name="MessageText" VerticalAlignment="Center" HorizontalAlignment="Center" />
+
+        <!-- Use Avalonia.Animation Image control for displaying animated GIF -->
+        <a:Image Name="FireworksGif" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
 </Window>

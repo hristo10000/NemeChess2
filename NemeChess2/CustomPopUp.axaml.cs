@@ -1,19 +1,22 @@
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Animation;
 using Avalonia.Markup.Xaml;
 
-namespace NemeChess2
+public partial class CustomPopUp : Window
 {
-    public partial class CustomPopUp : Window//TODO: when the game has ended, close the stream, open this window, add fireworks
+    public CustomPopUp(string message)
     {
-        public CustomPopUp(string message)
-        {
-            InitializeComponent();
-            this.FindControl<TextBlock>("MessageText").Text = message;
-        }
+        InitializeComponent();
+        this.FindControl<TextBlock>("MessageText").Text = message;
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+        var image = this.FindControl < a:Image > ("FireworksGif");
+        image.Source = new Bitmap("fireworks.gif");
+        image.Play();
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }
