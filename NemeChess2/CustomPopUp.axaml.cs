@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+/*using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Animation;
 using Avalonia.Markup.Xaml;
@@ -20,3 +20,4 @@ public partial class CustomPopUp : Window
         AvaloniaXamlLoader.Load(this);
     }
 }
+*/

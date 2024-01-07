@@ -56,8 +56,8 @@ namespace NemeChess2
         }
         public void GameOverWindow()
         {
-            var popup = new CustomPopUp("You Loose!");
-            popup.ShowDialog(this);
+            //var popup = new CustomPopUp("You Loose!");
+            //popup.ShowDialog(this);
         }
     }
 }
