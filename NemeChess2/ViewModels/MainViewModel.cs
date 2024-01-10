@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Avalonia.Media;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
+using Avalonia.Threading;
 
 namespace NemeChess2
 {
@@ -46,6 +48,9 @@ namespace NemeChess2
         }
         private Dictionary<string, ChessSquare> _chessboardDictionary = new Dictionary<string, ChessSquare>();
         private readonly IConfigurationRoot _configuration;
+        public  GameStateEvent lastUpdate { get; set; }
+        public bool CanMakeMove { get; private set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
         public MainViewModel(LichessApiService lichessApiService, IConfigurationRoot configuration)
         {
             _lichessApiService = lichessApiService;
@@ -80,8 +85,10 @@ namespace NemeChess2
                 _gameStreamingService.StartStreamingAsync();
             });
         }
+
         private void HandleGameState(GameStateEvent gameState)
         {
+            lastUpdate = gameState;
             var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             IsMyTurn = !IsMyTurn;
             if (moveList.Length > 0)
@@ -89,12 +96,25 @@ namespace NemeChess2
                 if (gameState.Status == "mate")
                 {
                     Debug.WriteLine(IsMyTurn ? "You Win!" : "You Loose!");
+
+                    OnGameOver();
                     _gameStreamingService.Dispose();
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
             }
         }
+
+        public event EventHandler? GameOver;
+
+        protected virtual void OnGameOver()
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                GameOver?.Invoke(this, EventArgs.Empty);
+            });
+        }
+
         public void UpdateChessboard(string lastMove)
         {
             try
@@ -107,6 +127,7 @@ namespace NemeChess2
 
                 toSquare.Piece = fromSquare.Piece;
                 fromSquare.Piece = "";
+                HighlightSquares(lastMove);
 
                 OnPropertyChanged(nameof(Chessboard));
             }
@@ -115,17 +136,26 @@ namespace NemeChess2
                 Debug.WriteLine($"Chessboard didn't update properly! {ex.Message}");
             }
         }
+
         public async Task MakeMoveAsync(string move)
         {
             try
             {
                 await _lichessApiService.MakeMoveAsync(_gameId, move);
+                lastUpdate.Moves = move;
+                /*HandleGameState(new GameStateEvent()
+                {
+                    Moves = move,
+                    Status = "started",
+                    Type = "gameState"
+                });*/
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error making move: {ex.Message}");
-            }                 
+            }
         }
+
         public List<ChessSquare> GenerateChessboard(bool isWhitePlayer)
         {
             for (int row = 0; row < 8; row++)
@@ -147,6 +177,36 @@ namespace NemeChess2
             }
             return Chessboard;
         }
+
+        private void HighlightSquares(string move)
+        {
+            foreach (var square in Chessboard)
+            {
+                square.IsHighlighted = false;
+                square.HighlightColor = Colors.Transparent;
+            }
+
+            var fromSquareName = move.Substring(0, 2);
+            var toSquareName = move.Substring(2, 2);
+
+            var fromSquare = Chessboard.FirstOrDefault(square => square.SquareName == fromSquareName);
+            var toSquare = Chessboard.FirstOrDefault(square => square.SquareName == toSquareName);
+
+            if (fromSquare != null)
+            {
+                fromSquare.IsHighlighted = true;
+                fromSquare.HighlightColor = Colors.Yellow;
+            }
+
+            if (toSquare != null)
+            {
+                toSquare.IsHighlighted = true;
+                toSquare.HighlightColor = Colors.Yellow;
+            }
+
+            OnPropertyChanged(nameof(Chessboard));
+        }
+
         public static string GetInitialPiece(int row, int col, bool isWhite)
         {
             if (row < 0 || row > 7 || col < 0 || col > 7)
@@ -224,8 +284,7 @@ namespace NemeChess2
 
             return "";
         }
-        public bool CanMakeMove { get; private set; }
-        public event PropertyChangedEventHandler? PropertyChanged;
+
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

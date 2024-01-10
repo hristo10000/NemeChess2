@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using NemeChess2;
 using NemeChess2.Models;
 using System;
 using System.Diagnostics;
@@ -89,11 +88,11 @@ public class LichessApiService
             throw;
         }
         catch{
-
             throw;
         }
     }
-    public async Task<bool> MakeMoveAsync(string gameId, string move)//TODO: highlight squares to improve the ux
+
+    public async Task<bool> MakeMoveAsync(string gameId, string move)
     {
         try
         {
@@ -105,7 +104,7 @@ public class LichessApiService
             var response = await _httpClient.SendAsync(request);
 
             var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine($"Failed to make move. Status code: {response.StatusCode}");
+            Debug.WriteLine($"Successfully made move. Status code: {response.StatusCode}");
             Debug.WriteLine($"Response Content: {content}");
             return true;
         }
@@ -115,6 +114,7 @@ public class LichessApiService
             return false;
         }
     }
+
     public async Task StartGameStream(string gameId, Action<GameUpdate> handleGameUpdate)
     {
         try

@@ -5,6 +5,8 @@ using NemeChess2.ViewModels;
 using System;
 using Avalonia.Data.Converters;
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Media;
+using System.Globalization;
 
 namespace NemeChess2
 {
@@ -23,21 +25,40 @@ namespace NemeChess2
             throw new NotImplementedException();
         }
     }
+    public class HighlightColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool isHighlighted && isHighlighted)
+            {
+                return Brushes.Yellow;
+            }
+
+            return Brushes.Transparent;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
+
         public MainWindow(IServiceProvider provider)
         {
             InitializeComponent();
             _viewModel = provider.GetRequiredService<MainViewModel>();
+            _viewModel.GameOver += (sender, args) => GameOverWindow();
         }
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
         }
+
         private async void Square_OnPointerPressed(object sender, PointerPressedEventArgs e)
         {
-            GameOverWindow();
             var border = (Border)sender;
             var square = (ChessSquare)border.DataContext;
 
@@ -54,10 +75,11 @@ namespace NemeChess2
                 _viewModel.SelectedSquare = null;
             }
         }
+
         public void GameOverWindow()
         {
-            //var popup = new CustomPopUp("You Loose!");
-            //popup.ShowDialog(this);
+            var popup = new CustomPopUp(_viewModel.IsMyTurn ? "You Win!" : "You Loose!");
+            popup.ShowDialog(this);
         }
     }
 }

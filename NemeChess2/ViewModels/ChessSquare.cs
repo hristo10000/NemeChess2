@@ -23,10 +23,37 @@ namespace NemeChess2.ViewModels
                 }
             }
         }
+
+        private bool _isHighlighted;
+        public bool IsHighlighted
+        {
+            get { return _isHighlighted; }
+            set
+            {
+                if (_isHighlighted != value)
+                {
+                    _isHighlighted = value;
+                    OnPropertyChanged(nameof(IsHighlighted));
+                }
+            }
+        }
+        private Color _highlightColor;
+        public Color HighlightColor
+        {
+            get { return _highlightColor; }
+            set
+            {
+                if (_highlightColor != value)
+                {
+                    _highlightColor = value;
+                    OnPropertyChanged(nameof(HighlightColor));
+                }
+            }
+        }
         public IBrush? Background
         {
             get { return _background; }
-            set
+             set
             {
                 if (_background != value)
                 {
@@ -35,6 +62,7 @@ namespace NemeChess2.ViewModels
                 }
             }
         }
+
         private string? _pieceImageSource;
         public string? PieceImageSource
         {
@@ -76,7 +104,7 @@ namespace NemeChess2.ViewModels
             }
         }
         public event PropertyChangedEventHandler? PropertyChanged;
-        public void UpdatePieceImageSource()//TODO: check if neccessary, if not delete
+        public void UpdatePieceImageSource()
         {
             if (!string.IsNullOrEmpty(Piece))
             {
@@ -87,8 +115,9 @@ namespace NemeChess2.ViewModels
             {
                 PieceImageSource = null;
             }
-            OnPropertyChanged(nameof(PieceImageSource));
+
         }
+
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

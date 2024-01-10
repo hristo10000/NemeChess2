@@ -10,6 +10,7 @@
 
 	<Window.Resources>
 		<nc:ImagePathConverter x:Key="ImagePathConverter"/>
+		<nc:HighlightColorConverter x:Key="HighlightColorConverter"/>
 	</Window.Resources>
 
 	<StackPanel>
@@ -26,10 +27,18 @@
 						<Border Background="{Binding Background}" Width="90" Height="90" BorderBrush="Black" BorderThickness="1" PointerPressed="Square_OnPointerPressed">
 							<Grid>
 								<TextBlock Text="{Binding SquareName}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5" Foreground="Blue"/>
+								<Rectangle Fill="Yellow" Opacity="0.5">
+									<Rectangle.IsVisible>
+										<Binding Path="IsHighlighted" Mode="OneWay"/>
+									</Rectangle.IsVisible>
+								</Rectangle>
 								<Image Source="{Binding PieceImageSource, Converter={StaticResource ImagePathConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="Uniform"/>
 							</Grid>
 						</Border>
 					</DataTemplate>
+
+
+
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
 		</Grid>

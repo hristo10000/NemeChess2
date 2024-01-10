@@ -1,23 +1,27 @@
-/*using Avalonia.Controls;
-using Avalonia.Media.Imaging;
-using Avalonia.Animation;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Threading;
 
-public partial class CustomPopUp : Window
+namespace NemeChess2
 {
-    public CustomPopUp(string message)
+    public partial class CustomPopUp : Window
     {
-        InitializeComponent();
-        this.FindControl<TextBlock>("MessageText").Text = message;
+        public CustomPopUp(string message)
+        {
+            InitializeComponent();
+            var messageTextBlock = this.FindControl<TextBlock>("MessageText");
 
-        var image = this.FindControl < a:Image > ("FireworksGif");
-        image.Source = new Bitmap("fireworks.gif");
-        image.Play();
-    }
+            Dispatcher.UIThread.Post(() =>
+            {
+                messageTextBlock.Text = message;
+                messageTextBlock.Foreground = Brushes.White;
+            });
+        }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
     }
 }
-*/

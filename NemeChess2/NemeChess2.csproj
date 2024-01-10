@@ -15,6 +15,7 @@
     <None Remove="pieces-basic\black-queen.png" />
     <None Remove="pieces-basic\black-rook.png" />
     <None Remove="pieces-basic\fireworks.gif" />
+    <None Remove="pieces-basic\fireworks.jpg" />
     <None Remove="pieces-basic\white-bishop.png" />
     <None Remove="pieces-basic\white-king.png" />
     <None Remove="pieces-basic\white-knight.png" />
@@ -42,6 +43,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="pieces-basic\fireworks.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="pieces-basic\fireworks.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="pieces-basic\white-bishop.png">

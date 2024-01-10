@@ -32,10 +32,12 @@
         public long Initial { get; set; }
         public long Increment { get; set; }
     }
+
     public class Perf
     {
         public string Name { get; set; }
     }
+
     public class GameEventPlayer
     {
         public string Id { get; set; }
@@ -44,6 +46,7 @@
         public long Rating { get; set; }
         public bool Provisional { get; set; }
     }
+
     public class GameStateEvent
     {
         public string? Type { get; set; }
@@ -54,17 +57,19 @@
         public int Binc { get; set; }
         public string Status { get; set; }
     }
+
     public class GameUpdateWhite : GameUpdate
     {
         public GameEventPlayer White { get; set; }
         public AiLevelType Black { get; set; }
     }
+
     public class GameUpdateBlack : GameUpdate
     {
         public GameEventPlayer Black { get; set; }
         public AiLevelType White { get; set; }
-
     }
+
     public class AiLevelType
     {
         public int AiLevel { get; set; }
