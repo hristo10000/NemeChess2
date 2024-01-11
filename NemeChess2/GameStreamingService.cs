@@ -18,6 +18,7 @@ namespace NemeChess2
         private readonly HttpClient _httpClient;
         private readonly string _gameId;
         private Stream _response;
+        private bool IsMyTurn { get; set; } 
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
 
@@ -46,9 +47,17 @@ namespace NemeChess2
                     var line = await reader.ReadLineAsync();
                     if (line == string.Empty)
                     {
-                        Thread.Sleep(1000);//TODO: instantly update when i make a move
+                        if (IsMyTurn)
+                        {
+                            Thread.Sleep(10);
+                        }
+                        else
+                        {
+                            Thread.Sleep(5000);
+                        }
                         continue;
                     }
+                    IsMyTurn = !IsMyTurn;
                     var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);
                     if (updateGameState.Moves != null)
                     {
@@ -78,6 +87,7 @@ namespace NemeChess2
             reader.Close();
             var updateWhite = JsonConvert.DeserializeObject<GameUpdateWhite>(line);
             IsWhite = updateWhite?.White?.Id == _configuration["Lichess:UserId"];
+            IsMyTurn = IsWhite;
             return IsWhite;
         }
         public void Dispose()

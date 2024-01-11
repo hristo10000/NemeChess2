@@ -74,7 +74,6 @@ public class LichessApiService
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     Debug.WriteLine($"Failed to challenge AI. Status code: {response.StatusCode}");
-                    Debug.WriteLine($"Response Content: {content}");
                     return null;
                 }
             }
@@ -105,7 +104,6 @@ public class LichessApiService
 
             var content = await response.Content.ReadAsStringAsync();
             Debug.WriteLine($"Successfully made move. Status code: {response.StatusCode}");
-            Debug.WriteLine($"Response Content: {content}");
             return true;
         }
         catch (HttpRequestException ex)

@@ -78,7 +78,7 @@ namespace NemeChess2
 
         public void GameOverWindow()
         {
-            var popup = new CustomPopUp(_viewModel.IsMyTurn ? "You Win!" : "You Loose!");
+            var popup = new CustomPopUp(_viewModel.IsMyTurn ? "You Loose!" : "You Win!");
             popup.ShowDialog(this);
         }
     }
