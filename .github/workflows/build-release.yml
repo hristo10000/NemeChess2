@@ -33,7 +33,7 @@ jobs:
           Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
         shell: pwsh
 
-      - name: Release build artifacts
-        run: gh release create v1.0 ./build_output/release.zip
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release build artifacts
+  run: gh release create v1.0 ./build_output/release.zip
+  env:
+    GH_TOKEN: ${{ secrets.GH_PAT }}
