@@ -28,12 +28,13 @@ public class LichessApiService
         try
         {
             int level = int.Parse(_configuration["Lichess:AiDifficulty"]);
-            int clockLimit = 10800;
-            int clockIncrement = 5;
-            int days = 1;
-            string color = "random";
-            string variant = "standard";
-            string fen = "";
+            int clockLimit = int.Parse(_configuration["Lichess:ClockLimit"]);
+            int clockIncrement = int.Parse(_configuration["Lichess:ClockIncrement"]);
+            int days = int.Parse(_configuration["Lichess:Days"]);
+            string color = _configuration["Lichess:Color"];
+            string variant = _configuration["Lichess:Variant"];
+            string fen = _configuration["Lichess:Fen"];
+
 
             var requestBody = new StringBuilder();
             requestBody.Append($"level={level}");

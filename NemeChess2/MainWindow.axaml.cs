@@ -22,9 +22,10 @@ namespace NemeChess2
         }
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            throw new NotImplementedException();
+            return "";
         }
     }
+
     public class HighlightColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -39,7 +40,7 @@ namespace NemeChess2
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotSupportedException();
+            return Brushes.Transparent;
         }
     }
     public partial class MainWindow : Window
@@ -50,8 +51,15 @@ namespace NemeChess2
         {
             InitializeComponent();
             _viewModel = provider.GetRequiredService<MainViewModel>();
-            _viewModel.GameOver += (sender, args) => GameOverWindow();
+            _viewModel.GameOver += GameOverWindow;
         }
+
+        private void GameOverWindow(object? sender, EventArgs e)
+        {
+            var popup = new CustomPopUp(_viewModel.IsMyTurn ? "You Loose!" : "You Win!");
+            popup.ShowDialog(this);
+        }
+
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
@@ -74,12 +82,6 @@ namespace NemeChess2
                 _viewModel.SelectedSquare.IsSelected = false;
                 _viewModel.SelectedSquare = null;
             }
-        }
-
-        public void GameOverWindow()
-        {
-            var popup = new CustomPopUp(_viewModel.IsMyTurn ? "You Loose!" : "You Win!");
-            popup.ShowDialog(this);
         }
     }
 }

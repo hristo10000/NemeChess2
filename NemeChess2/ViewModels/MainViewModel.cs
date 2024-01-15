@@ -48,7 +48,7 @@ namespace NemeChess2
         }
         private Dictionary<string, ChessSquare> _chessboardDictionary = new Dictionary<string, ChessSquare>();
         private readonly IConfigurationRoot _configuration;
-        public  GameStateEvent lastUpdate { get; set; }
+        public  GameStateEvent LastUpdate { get; set; }
         public bool CanMakeMove { get; private set; }
         public event PropertyChangedEventHandler? PropertyChanged;
         public MainViewModel(LichessApiService lichessApiService, IConfigurationRoot configuration)
@@ -79,7 +79,9 @@ namespace NemeChess2
                     Debug.WriteLine($"An error occurred: {ex.Message}");
                 }
             }).GetAwaiter().GetResult();
+
             Chessboard = GenerateChessboard(IsWhite);
+
             Task.Run(() =>
             {
                 _gameStreamingService.StartStreamingAsync();
@@ -88,7 +90,7 @@ namespace NemeChess2
 
         private void HandleGameState(GameStateEvent gameState)
         {
-            lastUpdate = gameState;
+            LastUpdate = gameState;
             var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             IsMyTurn = !IsMyTurn;
             if (moveList.Length > 0)
@@ -107,7 +109,7 @@ namespace NemeChess2
 
         public event EventHandler? GameOver;
 
-        protected virtual void OnGameOver()
+        public virtual void OnGameOver()
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -141,14 +143,17 @@ namespace NemeChess2
         {
             try
             {
-                await _lichessApiService.MakeMoveAsync(_gameId, move);
-                lastUpdate.Moves = move;
-                /*HandleGameState(new GameStateEvent()
+                var isMoveOk = await _lichessApiService.MakeMoveAsync(_gameId, move);
+                if(isMoveOk)
                 {
-                    Moves = move,
-                    Status = "started",
-                    Type = "gameState"
-                });*/
+                    LastUpdate.Moves = move;
+                    HandleGameState(new GameStateEvent()
+                    {
+                        Moves = move,
+                        Status = "started",
+                        Type = "gameState"
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -180,6 +185,7 @@ namespace NemeChess2
 
         private void HighlightSquares(string move)
         {
+            //use dic
             foreach (var square in Chessboard)
             {
                 square.IsHighlighted = false;

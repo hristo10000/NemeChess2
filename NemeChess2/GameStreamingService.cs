@@ -21,6 +21,7 @@ namespace NemeChess2
         private bool IsMyTurn { get; set; } 
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
+        private string requestUrl = "https://lichess.org/api/board/game/stream/";
 
         public GameStreamingService(IConfigurationRoot configuration, string gameId, Action<GameStateEvent> handleGameState)
         {
@@ -36,7 +37,7 @@ namespace NemeChess2
         {
             try
             {
-                _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
+                _response = await _httpClient.GetStreamAsync($"{requestUrl}{_gameId}", cancellationToken);
                 if (_response == null) throw new ResponseNullException("There was an issue with initializing the game stream! First call GetInitialResponse()!");
                 using var reader = new StreamReader(_response);
 
@@ -46,28 +47,25 @@ namespace NemeChess2
 
                     var line = await reader.ReadLineAsync();
                     if (line == string.Empty)
+                    { 
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+                    
+                    var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);
+                    if (!IsMyTurn)
                     {
-                        if (IsMyTurn)
+                        if (updateGameState.Moves != null)
                         {
-                            Thread.Sleep(10);
+                            _handleGameState.Invoke(updateGameState);
                         }
                         else
                         {
-                            Thread.Sleep(5000);
+                            GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);
+                            _handleGameState.Invoke(update.State);
                         }
-                        continue;
                     }
                     IsMyTurn = !IsMyTurn;
-                    var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);
-                    if (updateGameState.Moves != null)
-                    {
-                        _handleGameState.Invoke(updateGameState);
-                    }
-                    else
-                    {
-                        GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);
-                        _handleGameState.Invoke(update.State);
-                    }
                 }
             }
             catch (OperationCanceledException)
@@ -81,7 +79,7 @@ namespace NemeChess2
         }
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
          {
-            _response = await _httpClient.GetStreamAsync($"https://lichess.org/api/board/game/stream/{_gameId}", cancellationToken);
+            _response = await _httpClient.GetStreamAsync($"{requestUrl}{_gameId}", cancellationToken);
             using var reader = new StreamReader(_response);
             var line = await reader.ReadLineAsync();
             reader.Close();

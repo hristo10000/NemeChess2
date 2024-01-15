@@ -1,0 +1,39 @@
+name: NemeChess Open Beta
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: Documents\GitHub\NemeChess2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Build .NET project
+        run: dotnet build --configuration Release
+
+      - name: Publish .NET project
+        run: dotnet publish --configuration Release --output build_output
+
+      - name: Create ZIP Folder
+        run: |
+          Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
+        shell: pwsh
+
+      - name: Release build artifacts
+        run: gh release create v1.0 ./build_output/release.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
