@@ -36,4 +36,4 @@ jobs:
       - name: Release build artifacts
         run: gh release create v1.0 ../build_output/release.zip
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
