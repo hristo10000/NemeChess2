@@ -74,7 +74,7 @@ namespace NemeChess2
             }
             catch
             {
-                throw new Exception("Unexpected error with the stream occured!");
+                throw new Exception("Unexpected error with the stream occured.");
             }
         }
         public async Task<bool> GetInitialResponse(CancellationToken cancellationToken = default)
