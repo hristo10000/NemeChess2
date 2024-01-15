@@ -29,9 +29,7 @@ jobs:
         run: dotnet publish --configuration Release --output build_output
 
       - name: Create build output directory
-if (!(Test-Path "build_output")) {
-    mkdir build_output
-}
+        run: mkdir build_output
 
       - name: Create ZIP Folder
         run: |
