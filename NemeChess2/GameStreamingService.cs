@@ -70,7 +70,7 @@ namespace NemeChess2
             }
             catch (OperationCanceledException)
             {
-                throw new StreamStoppedUnexpectedlyEception("The stream has stopped working unexpectedly.");
+                throw new StreamStoppedUnexpectedlyEception("The stream has stopped working unexpectedly!");
             }
             catch
             {
