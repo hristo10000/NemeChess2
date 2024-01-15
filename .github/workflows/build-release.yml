@@ -28,10 +28,16 @@ jobs:
       - name: Publish .NET project
         run: dotnet publish --configuration Release --output build_output
 
+      - name: Create build output directory
+        run: mkdir build_output
+
       - name: Create ZIP Folder
         run: |
           Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
         shell: pwsh
+
+      - name: Set working directory to NemeChess2
+        run: cd NemeChess2
 
       - name: Release build artifacts
         run: gh release create v1.0 ../build_output/release.zip
