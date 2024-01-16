@@ -11,7 +11,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: NemeChess2
+        working-directory: Hristo Ivanov\Documents\GitHub\NemeChess2
 
     steps:
       - name: Checkout code
