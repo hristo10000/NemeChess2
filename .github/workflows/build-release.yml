@@ -34,4 +34,4 @@ jobs:
         working-directory: 'NemeChess2'
         run: gh release create v1.0 build_output/release.zip
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
