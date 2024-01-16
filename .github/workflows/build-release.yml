@@ -29,8 +29,7 @@ jobs:
         run: dotnet publish --configuration Release --output build_output
 
       - name: Create ZIP Folder
-        run: |
-          Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
+        run: Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
         shell: pwsh
 
       - name: Set working directory to NemeChess2
