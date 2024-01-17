@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -30,17 +31,6 @@ jobs:
         run: Compress-Archive -Path "NemeChess2/build_output" -DestinationPath "NemeChess2/build_output/release.zip"
         shell: pwsh
 
-      - name: Clear GH_TOKEN environment variable
-        run: echo "::remove-env name=GH_TOKEN"
-
-      - name: Authenticate with GitHub
-        run: gh auth login
-        # No GH_TOKEN specified in the environment here
-
-      - name: Check existing release
-        working-directory: 'NemeChess2'
-        run: gh release view v1.0 || echo "Release doesn't exist"
-
       - name: Release build artifacts
         working-directory: 'NemeChess2'
-        run: gh release create v1.0 build_output/release.zip || gh release create v1.0 build_output/release.zip
+        run: gh release create v1.0 build_output/release.zip -t "${{ secrets.GH_TOKEN }}"
