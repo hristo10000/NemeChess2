@@ -31,7 +31,7 @@ jobs:
         shell: pwsh
 
       - name: Clear GH_TOKEN environment variable
-        run: echo "::unset-env name=GH_TOKEN"
+        run: echo "::remove-env name=GH_TOKEN"
 
       - name: Authenticate with GitHub
         run: gh auth login
