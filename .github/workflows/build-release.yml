@@ -3,7 +3,7 @@ name: NemeChess Open Beta
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
