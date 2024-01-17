@@ -38,7 +38,7 @@ jobs:
         run: gh config set -h github.com github.token "${{ secrets.GH_TOKEN }}"
 
       - name: Set Repository Context
-        run: gh repo set-default -R hristo10000/NemeChess2
+        run: echo "::set-env name=GITHUB_REPOSITORY::hristo10000/NemeChess2"
 
       - name: Release build artifacts
         working-directory: 'NemeChess2'
