@@ -31,6 +31,9 @@ jobs:
         run: Compress-Archive -Path "NemeChess2/build_output" -DestinationPath "NemeChess2/build_output/release.zip"
         shell: pwsh
 
+      - name: Print GitHub Token
+        run: echo ${{ secrets.GH_TOKEN }}
+
       - name: Configure GitHub CLI
         run: gh config set -h github.com github.token "${{ secrets.GH_TOKEN }}"
 
