@@ -30,6 +30,9 @@ jobs:
         run: Compress-Archive -Path "NemeChess2/build_output" -DestinationPath "NemeChess2/build_output/release.zip"
         shell: pwsh
 
+      - name: Clear GH_TOKEN environment variable
+        run: echo "::unset-env name=GH_TOKEN"
+
       - name: Authenticate with GitHub
         run: gh auth login
         env:
