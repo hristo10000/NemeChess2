@@ -35,9 +35,8 @@ jobs:
 
       - name: Authenticate with GitHub
         run: gh auth login
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        
+        # No GH_TOKEN specified in the environment here
+
       - name: Check existing release
         working-directory: 'NemeChess2'
         run: gh release view v1.0 || echo "Release doesn't exist"
@@ -45,5 +44,3 @@ jobs:
       - name: Release build artifacts
         working-directory: 'NemeChess2'
         run: gh release create v1.0 build_output/release.zip
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
