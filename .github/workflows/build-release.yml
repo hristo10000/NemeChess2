@@ -43,4 +43,4 @@ jobs:
 
       - name: Release build artifacts
         working-directory: 'NemeChess2'
-        run: gh release create v1.0 build_output/release.zip
+        run: gh release create v1.0 build_output/release.zip || gh release create v1.0 build_output/release.zip
