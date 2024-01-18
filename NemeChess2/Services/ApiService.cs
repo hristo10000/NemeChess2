@@ -105,6 +105,10 @@ public class LichessApiService
 
             var content = await response.Content.ReadAsStringAsync();
             Debug.WriteLine($"Successfully made move. Status code: {response.StatusCode}");
+            if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                return false;
+            }
             return true;
         }
         catch (HttpRequestException ex)

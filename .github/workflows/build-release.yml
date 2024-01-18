@@ -10,10 +10,6 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
 
-#  defaults:
-#       run:
-#         working-directory: NemeChess2
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,12 +29,7 @@ jobs:
         run: Compress-Archive -Path "build_output" -DestinationPath "build_output/release.zip"
         shell: pwsh
 
-      # - name: Configure GitHub CLI
-        # run: gh config set -h github.com github.token "${{ secrets.GH_TOKEN }}"
       - name: Release build artifacts
         run: gh release create v1.0 ./build_output/release.zip
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      # - name: Release build artifacts
-      #   run: gh release create v1.0 ./build_output/release.zip --title "NemeChess Release v1.0" --notes "Release notes for v1.0"
