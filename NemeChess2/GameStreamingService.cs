@@ -3,6 +3,7 @@ using NemeChess2.Exceptions;
 using NemeChess2.Models;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -18,10 +19,12 @@ namespace NemeChess2
         private readonly HttpClient _httpClient;
         private readonly string _gameId;
         private Stream _response;
-        private bool IsMyTurn { get; set; } 
+        public bool IsMyTurn { get; set; }
         public bool IsColorDetermined { get; set; } = false;
         public bool IsWhite { get; set; }
-        private string requestUrl = "https://lichess.org/api/board/game/stream/";
+        private bool isInitialTurn = true;
+
+        private readonly string requestUrl = "https://lichess.org/api/board/game/stream/";
 
         public GameStreamingService(IConfigurationRoot configuration, string gameId, Action<GameStateEvent> handleGameState)
         {
@@ -47,13 +50,12 @@ namespace NemeChess2
 
                     var line = await reader.ReadLineAsync();
                     if (line == string.Empty)
-                    { 
+                    {
                         Thread.Sleep(1000);
                         continue;
                     }
-                    
                     var updateGameState = JsonConvert.DeserializeObject<GameStateEvent>(line);
-                    if (!IsMyTurn)
+                    if (!IsMyTurn || isInitialTurn)
                     {
                         if (updateGameState.Moves != null)
                         {
@@ -62,10 +64,18 @@ namespace NemeChess2
                         else
                         {
                             GameUpdate update = IsWhite ? JsonConvert.DeserializeObject<GameUpdateWhite>(line) : JsonConvert.DeserializeObject<GameUpdateBlack>(line);
-                            _handleGameState.Invoke(update.State);
+                            if (!IsMyTurn)
+                            {
+                                _handleGameState.Invoke(update.State);
+                            }
                         }
+                        if (!IsMyTurn)
+                        {
+                            IsMyTurn = !IsMyTurn;
+                        }
+                        isInitialTurn = false;
+                        Debug.WriteLine(IsMyTurn);
                     }
-                    IsMyTurn = !IsMyTurn;
                 }
             }
             catch (OperationCanceledException)

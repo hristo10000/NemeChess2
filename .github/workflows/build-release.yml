@@ -33,3 +33,4 @@ jobs:
         run: gh release create v1.0.1 ./build_output/release.zip
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          

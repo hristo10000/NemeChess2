@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Microsoft.Extensions.Configuration;
 using System.Linq;
 using Avalonia.Threading;
+using System.Threading;
 
 namespace NemeChess2
 {
@@ -68,6 +69,7 @@ namespace NemeChess2
                         _gameStreamingService = new GameStreamingService(_configuration, _gameId, HandleGameState);
                         IsWhite = await _gameStreamingService.GetInitialResponse();
                         IsMyTurn = IsWhite;
+                        LastUpdate = new GameStateEvent();
                     }
                     else
                     {
@@ -93,6 +95,7 @@ namespace NemeChess2
             LastUpdate = gameState;
             var moveList = gameState.Moves.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             IsMyTurn = !IsMyTurn;
+
             if (moveList.Length > 0)
             {
                 if (gameState.Status == "mate")
@@ -104,6 +107,7 @@ namespace NemeChess2
                 }
                 var lastMove = moveList[moveList.Length - 1];
                 UpdateChessboard(lastMove);
+                _gameStreamingService.IsMyTurn = false;
             }
         }
 
@@ -144,7 +148,7 @@ namespace NemeChess2
             try
             {
                 var isMoveOk = await _lichessApiService.MakeMoveAsync(_gameId, move);
-                if(isMoveOk)
+                if (isMoveOk)
                 {
                     LastUpdate.Moves = move;
                     HandleGameState(new GameStateEvent()
@@ -185,7 +189,6 @@ namespace NemeChess2
 
         private void HighlightSquares(string move)
         {
-            //use dic
             foreach (var square in Chessboard)
             {
                 square.IsHighlighted = false;

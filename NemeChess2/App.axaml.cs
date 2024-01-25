@@ -23,7 +23,6 @@ namespace NemeChess2
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
                     .Build();
-
                 
                 var services = new ServiceCollection();
                 services.AddSingleton(configuration);

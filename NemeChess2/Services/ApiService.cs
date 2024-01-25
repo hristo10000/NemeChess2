@@ -35,7 +35,6 @@ public class LichessApiService
             string variant = _configuration["Lichess:Variant"];
             string fen = _configuration["Lichess:Fen"];
 
-
             var requestBody = new StringBuilder();
             requestBody.Append($"level={level}");
             requestBody.Append($"&clock.limit={clockLimit}");
